@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split
-from mltf import test, models
+from transfernet import test, models
 from sklearn import datasets
 import pandas as pd
 
@@ -7,7 +7,7 @@ import pandas as pd
 def main():
 
     # Parameters
-    frac = None  # Can specify fraction of sub samples for fast testing
+    save_dir = './outputs'
     target = 'delta_e'
     n_epochs = 1000  # Originally 1000
     batch_size = 32
@@ -59,11 +59,11 @@ def main():
              X_target_test,
              y_target_test,
              model,
-             n_epochs=1000,
-             batch_size=32,
-             lr=0.0001,
-             patience=200,
-             save_dir='./outputs'
+             n_epochs,
+             batch_size,
+             lr,
+             patience,
+             save_dir,
              )
 
 
