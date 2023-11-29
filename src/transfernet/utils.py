@@ -12,25 +12,6 @@ import copy
 import os
 
 
-def stats(df, cols, drop=None):
-    '''
-    Get the statistic of a dataframe.
-    '''
-
-    if drop:
-        df = df.drop(drop, axis=1)
-
-    groups = df.groupby(cols)
-    mean = groups.mean().add_suffix('_mean')
-    sem = groups.sem().add_suffix('_sem')
-    count = groups.count().add_suffix('_count')
-    df = mean.merge(sem, on=cols)
-    df = df.merge(count, on=cols)
-    df = df.reset_index()
-
-    return df
-
-
 def to_tensor(x):
     y = torch.FloatTensor(x)
 
@@ -51,8 +32,6 @@ def save(scaler, model, df, save_dir):
 
 def plot(df, save_dir):
 
-    df = stats(df, ['set', 'epoch'])
-
     for group, values in df.groupby('set'):
 
         if group == 'train':
@@ -62,14 +41,13 @@ def plot(df, save_dir):
 
         # Regular plot
         fig, ax = pl.subplots()
-        ax.errorbar(
-                    values['epoch'],
-                    values['mae_mean'],
-                    yerr=values['mae_sem'],
-                    fmt='-o',
-                    color=color,
-                    label=group.capitalize(),
-                    )
+        ax.plot(
+                values['epoch'],
+                values['mae'],
+                marker='o',
+                color=color,
+                label=group.capitalize(),
+                )
 
         ax.set_xlabel('Epochs')
         ax.set_ylabel('Loss Mean Average Error')
@@ -154,8 +132,9 @@ def validate_fit(
             loss.backward()
             optimizer.step()
 
-            train_epochs.append(epoch)
-            train_losses.append(loss.item())
+        loss = metric(model(X_train), y_train)
+        train_epochs.append(epoch)
+        train_losses.append(loss.item())
 
         model.eval()
         with torch.no_grad():
@@ -238,8 +217,9 @@ def train_fit(
             loss.backward()
             optimizer.step()
 
-            train_epochs.append(epoch)
-            train_losses.append(loss.item())
+        loss = metric(model(X), y)
+        train_epochs.append(epoch)
+        train_losses.append(loss.item())
 
         if train_losses[-1] < best_loss:
             best_loss = train_losses[-1]
