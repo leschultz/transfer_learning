@@ -60,6 +60,7 @@ def plot(df, save_dir):
         elif group == 'test':
             color = 'r'
 
+        # Regular plot
         fig, ax = pl.subplots()
         ax.errorbar(
                     values['epoch'],
@@ -73,13 +74,30 @@ def plot(df, save_dir):
         ax.set_xlabel('Epochs')
         ax.set_ylabel('Loss Mean Average Error')
 
-        ax.legend()
-
         fig.tight_layout()
         fig.savefig(
                     save_dir+'_{}.png'.format(group),
                     bbox_inches='tight',
                     )
+
+        # Legend by itself
+        fig_legend, ax_legend = pl.subplots()
+        ax_legend.axis(False)
+        legend = ax_legend.legend(
+                                  *ax.get_legend_handles_labels(),
+                                  frameon=False,
+                                  loc='center',
+                                  bbox_to_anchor=(0.5, 0.5)
+                                  )
+        ax_legend.spines['top'].set_visible(False)
+        ax_legend.spines['bottom'].set_visible(False)
+        ax_legend.spines['left'].set_visible(False)
+        ax_legend.spines['right'].set_visible(False)
+
+        fig_legend.savefig(
+                           save_dir+'_{}_legend.png'.format(group),
+                           bbox_inches='tight',
+                           )
 
 
 def validate_fit(

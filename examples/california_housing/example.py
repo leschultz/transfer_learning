@@ -19,7 +19,7 @@ def main():
     X = data['data']
     y = data['target']
 
-    df = pd.concat([X, y], axis=1).sample(frac=0.01)
+    df = pd.concat([X, y], axis=1)
 
     y = df[target].values
     X = df.drop(target, axis=1).values
