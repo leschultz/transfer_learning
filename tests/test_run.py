@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split
-from transfernet import test, models
+from transfernet import validate, train, models
 from sklearn import datasets
 import pandas as pd
 import unittest
@@ -12,7 +12,6 @@ class ml_test(unittest.TestCase):
 
         # Parameters
         save_dir = './outputs'
-        frac = 0.001  # Can specify fraction of sub samples for fast testing
         target = 'delta_e'
         n_epochs = 1000  # Originally 1000
         batch_size = 32
@@ -24,7 +23,7 @@ class ml_test(unittest.TestCase):
         X = data['data']
         y = data['target']
 
-        df = pd.concat([X, y], axis=1).sample(frac=frac)
+        df = pd.concat([X, y], axis=1).sample(frac=0.001)
 
         y = df[target].values
         X = df.drop(target, axis=1).values
@@ -47,29 +46,44 @@ class ml_test(unittest.TestCase):
 
         # Split target into train and test
         splits = train_test_split(
-                                  X_target, 
-                                  y_target, 
-                                  train_size=0.8, 
+                                  X_target,
+                                  y_target,
+                                  train_size=0.8,
                                   random_state=0,
                                   )
         X_target_train, X_target_test, y_target_train, y_target_test = splits
 
-        test.run(
-                 X_source_train,
-                 y_source_train,
-                 X_source_test,
-                 y_source_test,
-                 X_target_train,
-                 y_target_train,
-                 X_target_test,
-                 y_target_test,
-                 model,
-                 n_epochs,
-                 batch_size,
-                 lr,
-                 patience,
-                 save_dir,
-                 )
+        # Validate the method by having explicit test sets
+        validate.run(
+                     X_source_train,
+                     y_source_train,
+                     X_source_test,
+                     y_source_test,
+                     X_target_train,
+                     y_target_train,
+                     X_target_test,
+                     y_target_test,
+                     model,
+                     n_epochs,
+                     batch_size,
+                     lr,
+                     patience,
+                     save_dir,
+                     )
+
+        # Train 1 model on all data
+        train.run(
+                  X_source,
+                  y_source,
+                  X_target,
+                  y_target,
+                  model,
+                  n_epochs,
+                  batch_size,
+                  lr,
+                  patience,
+                  save_dir,
+                  )
 
         shutil.rmtree(save_dir)
 

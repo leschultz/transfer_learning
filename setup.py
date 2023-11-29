@@ -7,7 +7,7 @@ description = 'Deep learning transfer learning.'
 url = 'https://github.com/leschultz/transfernet.git'
 author = 'Lane E. Schultz'
 author_email = 'laneenriqueschultz@gmail.com'
-python_requires = '>=3.6'
+python_requires = '>=3.10'
 classifiers = ['Programming Language :: Python :: 3',
                'License :: OSI Approved :: MIT License',
                'Operating System :: OS Independent',
