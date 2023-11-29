@@ -19,6 +19,7 @@ install_requires = [
                     'pandas',
                     'numpy',
                     'pytest',
+                    'torch',
                     ]
 
 long_description = open('README.md').read()
