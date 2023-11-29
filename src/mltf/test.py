@@ -182,7 +182,6 @@ def run(
               copy.deepcopy(model),
               )
     source_model = out[1]
-    print(out)
     save(*out, os.path.join(save_dir, 'source'))
 
     # Fit on target domain
