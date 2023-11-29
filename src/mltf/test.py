@@ -1,34 +1,20 @@
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from pymatgen.core.periodic_table import Element
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot as pl
 from torch import nn, optim
-from models import ElemNet
 
 import pandas as pd
 import numpy as np
 import joblib
 import torch
+import copy
 import os
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
 else:
     device = torch.device("cpu")
-
-
-def loader(path, select, target, frac=None):
-
-    df = pd.read_csv(path)
-
-    if frac is not None:
-        df = df.sample(frac=frac)
-
-    X = df[select].values
-    y = df[target].values
-
-    return X, y
 
 
 def save(scaler, model, df, save_dir):
@@ -42,13 +28,13 @@ def save(scaler, model, df, save_dir):
 
 def plot(df, save_dir):
 
-    valid = df[df['set'] == 'validation']
+    test = df[df['set'] == 'test']
 
     fig, ax = pl.subplots()
 
     ax.plot(
-            valid['epoch'],
-            valid['mae'],
+            test['epoch'],
+            test['mae'],
             marker='o',
             color='r',
             label='Validation',
@@ -69,18 +55,14 @@ def plot(df, save_dir):
 def fit(
         X_train,
         y_train,
-        X_valid,
-        y_valid,
+        X_test,
+        y_test,
         n_epochs,
         batch_size,
         lr,
         patience,
-        model=None,
+        model,
         ):
-
-    # If pretrained not supplied
-    if model is None:
-       model = ElemNet(X_train.shape[1])
 
     # Define models and parameters
     scaler = StandardScaler()
@@ -90,13 +72,13 @@ def fit(
     # Scale features
     scaler.fit(X_train)
     X_train = scaler.transform(X_train)
-    X_valid = scaler.transform(X_valid)
+    X_test = scaler.transform(X_test)
 
     # Convert to tensor
     X_train = to_tensor(X_train)
-    X_valid = to_tensor(X_valid)
+    X_test = to_tensor(X_test)
     y_train = to_tensor(y_train)
-    y_valid = to_tensor(y_valid)
+    y_test = to_tensor(y_test)
 
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(
@@ -105,14 +87,14 @@ def fit(
                               shuffle=True,
                               )
 
-    valid_epochs = list(range(n_epochs))
+    test_epochs = []
     train_epochs = []
     train_losses = []
-    valid_losses = []
+    test_losses = []
 
     best_loss = float('inf')
     no_improv = 0
-    for epoch in valid_epochs:
+    for epoch in range(n_epochs):
 
         # Training
         model.train()
@@ -129,12 +111,13 @@ def fit(
 
         model.eval()
         with torch.no_grad():
-            y_pred = model(X_valid)
-            loss = metric(y_pred, y_valid)
-            valid_losses.append(loss.item())
+            y_pred = model(X_test)
+            loss = metric(y_pred, y_test)
+            test_epochs.append(epoch)
+            test_losses.append(loss.item())
 
-        if valid_losses[-1] < best_loss:
-            best_loss = valid_losses[-1]
+        if test_losses[-1] < best_loss:
+            best_loss = test_losses[-1]
             no_improv = 0
         else:
             no_improv += 1
@@ -150,12 +133,12 @@ def fit(
     train['mae'] = train_losses
     train['set'] = 'train'
 
-    valid = pd.DataFrame()
-    valid['epoch'] = valid_epochs
-    valid['mae'] = valid_losses
-    valid['set'] = 'validation'
+    test = pd.DataFrame()
+    test['epoch'] = test_epochs
+    test['mae'] = test_losses
+    test['set'] = 'test'
 
-    df = pd.concat([train, valid])
+    df = pd.concat([train, test])
 
     return scaler, model, df
 
@@ -169,83 +152,63 @@ def to_tensor(x):
     return y
 
 
-def main():
+def run(
+        X_source_train,
+        y_source_train,
+        X_source_test,
+        y_source_test,
+        X_target_train,
+        y_target_train,
+        X_target_test,
+        y_target_test,
+        model,
+        n_epochs=1000,
+        batch_size=32,
+        lr=0.0001,
+        patience=200,
+        save_dir='./outputs'
+        ):
 
-    # OQMD data
-    oqmd_train = '../paper/data/train_set.csv'
-    oqmd_valid = '../paper/data/test_set.csv'
-    oqmd_dir = '../outputs/oqmd'
-
-    # Experimental data
-    expe_train = '../paper/data/holdout-new/10/experimental_training_set.csv'
-    expe_valid = '../paper/data/holdout-new/10/experimental_test_set.csv'
-    expe_dir = '../outputs/expe'
-    tran_dir = '../outputs/tran'
-
-    # Parameters
-    frac = None  # Can specify fraction of sub samples for fast testing
-    target = 'delta_e'
-    n_epochs = 1000  # Originally 1000
-    batch_size = 32
-    lr = 0.0001
-    patience = 200
-    train_size = 0.9
-
-    # Get features
-    train = pd.read_csv(oqmd_train)
-    all_elements = [str(element) for element in Element]
-    select = [i for i in all_elements if i in train.columns]
-
-    # Load data for 9:1 split
-    X_train_oqmd, y_train_oqmd = loader(oqmd_train, select, target, frac)
-    X_valid_oqmd, y_valid_oqmd = loader(oqmd_valid, select, target, frac)
-
-    X_train_expe, y_train_expe = loader(expe_train, select, target, frac)
-    X_valid_expe, y_valid_expe = loader(expe_valid, select, target, frac)
-
+    # Fit on source domain
     out = fit(
-              X_train_oqmd,
-              y_train_oqmd,
-              X_valid_oqmd,
-              y_valid_oqmd,
+              X_source_train,
+              y_source_train,
+              X_source_test,
+              y_source_test,
               n_epochs,
               batch_size,
               lr,
               patience,
+              copy.deepcopy(model),
               )
+    source_model = out[1]
+    print(out)
+    save(*out, os.path.join(save_dir, 'source'))
 
-    oqmd_scaler, oqmd_model, oqmd_df = out
-    save(*out, oqmd_dir)
-
+    # Fit on target domain
     out = fit(
-              X_train_expe,
-              y_train_expe,
-              X_valid_expe,
-              y_valid_expe,
+              X_target_train,
+              y_target_train,
+              X_target_test,
+              y_target_test,
               n_epochs,
               batch_size,
               lr,
               patience,
+              copy.deepcopy(model),
               )
+    save(*out, os.path.join(save_dir, 'target'))
 
-    expe_scaler, expe_model, expe_df = out
-    save(*out, expe_dir)
-
+    # Transfer model from source to target domains
     out = fit(
-              X_train_expe,
-              y_train_expe,
-              X_valid_expe,
-              y_valid_expe,
+              X_target_train,
+              y_target_train,
+              X_target_test,
+              y_target_test,
               n_epochs,
               batch_size,
               lr,
               patience,
-              oqmd_model,
+              source_model,
               )
-
-    tran_scaler, tran_model, tran_df = out
-    save(*out, tran_dir)
-
-
-if __name__ == '__main__':
-    main()
+    save(*out, os.path.join(save_dir, 'transfered'))

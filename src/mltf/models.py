@@ -1,6 +1,27 @@
 from torch import nn, relu
 
 
+class CaliforniaHousingNet(nn.Module):
+
+    def __init__(self, input_dim):
+
+        super(CaliforniaHousingNet, self).__init__()
+
+        self.fc1 = nn.Linear(input_dim, 24)
+        self.fc2 = nn.Linear(24, 12)
+        self.fc3 = nn.Linear(12, 6)
+        self.fc4 = nn.Linear(6, 1)
+
+    def forward(self, x):
+
+        x = relu(self.fc1(x))
+        x = relu(self.fc2(x))
+        x = relu(self.fc3(x))
+        x = self.fc4(x)
+
+        return x
+
+
 class ElemNet(nn.Module):
 
     def __init__(self, input_dim):
