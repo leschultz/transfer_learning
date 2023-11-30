@@ -17,6 +17,7 @@ install_requires = [
                     'matplotlib',
                     'scikit-learn',
                     'pandas',
+                    'pymatgen',
                     'numpy',
                     'pytest',
                     'torch',
