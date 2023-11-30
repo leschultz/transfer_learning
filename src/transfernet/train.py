@@ -1,4 +1,4 @@
-from transfernet.utils import train_fit, save
+from transfernet.utils import train_fit, save, freeze
 import torch
 import copy
 import os
@@ -23,6 +23,7 @@ def run(
         target_batch_size=32,
         target_lr=0.0001,
         target_patience=200,
+        freeze_n_layers=1,
         save_dir='./outputs'
         ):
 
@@ -52,6 +53,7 @@ def run(
     save(*out, os.path.join(save_dir, 'train/target'))
 
     # Transfer model from source to target domains
+    source_model = freeze(source_model, freeze_n_layers)
     out = train_fit(
                     X_target,
                     y_target,
