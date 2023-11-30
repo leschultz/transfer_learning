@@ -1,6 +1,5 @@
+from transfernet import validate, train, models, datasets
 from sklearn.model_selection import train_test_split
-from transfernet import validate, train, models
-from sklearn import datasets
 import pandas as pd
 import unittest
 import shutil
@@ -12,35 +11,26 @@ class ml_test(unittest.TestCase):
 
         # Parameters
         save_dir = './outputs'
+        freeze_n_layers = 1  # Layers to freeze staring from first for transfer
 
         # Source training parameters
-        source_n_epochs = 2
+        source_n_epochs = 1
         source_batch_size = 32
         source_lr = 0.0001
         source_patience = 200
 
         # Target training parameters
-        target_n_epochs = 2
+        target_n_epochs = 1
         target_batch_size = 32
         target_lr = 0.0001
         target_patience = 200
 
-        X, y = datasets.make_regression(
-                                        n_samples=1000,
-                                        n_features=5,
-                                        random_state=0,
-                                        n_targets=1,
-                                        )
+        # Load data
+        data = datasets.load('make_regression')
+        X_source, y_source, X_target, y_target = data
 
         # Define architecture to use
-        model = models.ExampleNet(X.shape[1])
-
-        # Split on data we start from (source) to what we transfer to (target)
-        splits = train_test_split(X, y, train_size=0.8, random_state=0)
-        X_source, X_target, y_source, y_target = splits
-
-        # Make the target related to the source target by simple function
-        y_target = 5*y_target+2
+        model = models.ExampleNet(X_source.shape[1])
 
         # Split source into train and test
         splits = train_test_split(
@@ -79,6 +69,7 @@ class ml_test(unittest.TestCase):
                      target_batch_size,
                      target_lr,
                      target_patience,
+                     freeze_n_layers,
                      save_dir,
                      )
 
@@ -97,6 +88,7 @@ class ml_test(unittest.TestCase):
                   target_batch_size,
                   target_lr,
                   target_patience,
+                  freeze_n_layers,
                   save_dir,
                   )
 
