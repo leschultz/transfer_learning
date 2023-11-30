@@ -8,16 +8,16 @@ def main():
 
     # Parameters
     save_dir = './outputs'
-    freeze_n_layers = 3  # Layers to freeze staring from first
+    freeze_n_layers = 2  # Layers to freeze staring from first for transfer
 
     # Source training parameters
-    source_n_epochs = 10
+    source_n_epochs = 1000
     source_batch_size = 32
     source_lr = 0.0001
     source_patience = 200
 
     # Target training parameters
-    target_n_epochs = 20
+    target_n_epochs = 10000
     target_batch_size = 32
     target_lr = 0.0001
     target_patience = 200

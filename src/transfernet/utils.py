@@ -8,11 +8,12 @@ import pandas as pd
 import numpy as np
 import joblib
 import torch
+import json
 import copy
 import os
 
 
-def freeze(model, freeze_n_layers):
+def freeze(model, freeze_n_layers=0):
 
     # Freeze neural net layers
     for i, layer in enumerate(model.named_children()):
@@ -66,8 +67,9 @@ def plot(df, save_dir):
         ax.set_ylabel('Loss Mean Average Error')
 
         fig.tight_layout()
+        name = save_dir+'_{}'.format(group)
         fig.savefig(
-                    save_dir+'_{}.png'.format(group),
+                    name+'.png',
                     bbox_inches='tight',
                     )
 
@@ -86,9 +88,16 @@ def plot(df, save_dir):
         ax_legend.spines['right'].set_visible(False)
 
         fig_legend.savefig(
-                           save_dir+'_{}_legend.png'.format(group),
+                           name+'_legend.png',
                            bbox_inches='tight',
                            )
+
+        data = {}
+        data['mae'] = values['mae'].tolist()
+        data['epoch'] = values['epoch'].tolist()
+
+        with open(name+'.json', 'w') as handle:
+            json.dump(data, handle)
 
 
 def validate_fit(

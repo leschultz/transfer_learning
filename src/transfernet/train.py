@@ -23,7 +23,7 @@ def run(
         target_batch_size=32,
         target_lr=0.0001,
         target_patience=200,
-        freeze_n_layers=1,
+        freeze_n_layers=0,
         save_dir='./outputs'
         ):
 
