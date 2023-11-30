@@ -1,11 +1,11 @@
 from torch import nn, relu
 
 
-class CaliforniaHousingNet(nn.Module):
+class ExampleNet(nn.Module):
 
     def __init__(self, input_dim):
 
-        super(CaliforniaHousingNet, self).__init__()
+        super(ExampleNet, self).__init__()
 
         self.fc1 = nn.Linear(input_dim, 24)
         self.fc2 = nn.Linear(24, 12)

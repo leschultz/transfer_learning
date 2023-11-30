@@ -41,12 +41,14 @@ def plot(df, save_dir):
 
         # Regular plot
         fig, ax = pl.subplots()
+        val = min(values['mae'])
+        label = '{} lowest value: {:.2f}'.format(group.capitalize(), val)
         ax.plot(
                 values['epoch'],
                 values['mae'],
                 marker='o',
                 color=color,
-                label=group.capitalize(),
+                label=label,
                 )
 
         ax.set_xlabel('Epochs')

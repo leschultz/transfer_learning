@@ -8,28 +8,35 @@ def main():
 
     # Parameters
     save_dir = './outputs'
-    target = 'delta_e'
-    n_epochs = 1000  # Originally 1000
-    batch_size = 32
-    lr = 0.0001
-    patience = 200
-    target = 'MedHouseVal'
 
-    data = datasets.fetch_california_housing(as_frame=True)
-    X = data['data']
-    y = data['target']
+    # Source training parameters
+    source_n_epochs = 1000
+    source_batch_size = 32
+    source_lr = 0.0001
+    source_patience = 200
 
-    df = pd.concat([X, y], axis=1).sample(frac=0.1)
+    # Target training parameters
+    target_n_epochs = 10000
+    target_batch_size = 32
+    target_lr = 0.0001
+    target_patience = 200
 
-    y = df[target].values
-    X = df.drop(target, axis=1).values
+    X, y = datasets.make_regression(
+                                    n_samples=1000,
+                                    n_features=5,
+                                    random_state=0,
+                                    n_targets=1,
+                                    )
 
     # Define architecture to use
-    model = models.CaliforniaHousingNet(X.shape[1])
+    model = models.ExampleNet(X.shape[1])
 
     # Split on data we start from (source) to what we transfer to (target)
     splits = train_test_split(X, y, train_size=0.8, random_state=0)
     X_source, X_target, y_source, y_target = splits
+
+    # Make the target related to the source target by simple function
+    y_target = 5*y_target+2
 
     # Split source into train and test
     splits = train_test_split(
@@ -60,10 +67,14 @@ def main():
                  X_target_test,
                  y_target_test,
                  model,
-                 n_epochs,
-                 batch_size,
-                 lr,
-                 patience,
+                 source_n_epochs,
+                 source_batch_size,
+                 source_lr,
+                 source_patience,
+                 target_n_epochs,
+                 target_batch_size,
+                 target_lr,
+                 target_patience,
                  save_dir,
                  )
 
@@ -74,10 +85,14 @@ def main():
               X_target,
               y_target,
               model,
-              n_epochs,
-              batch_size,
-              lr,
-              patience,
+              source_n_epochs,
+              source_batch_size,
+              source_lr,
+              source_patience,
+              target_n_epochs,
+              target_batch_size,
+              target_lr,
+              target_patience,
               save_dir,
               )
 

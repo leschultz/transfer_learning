@@ -19,10 +19,14 @@ def run(
         X_target_test,
         y_target_test,
         model,
-        n_epochs=1000,
-        batch_size=32,
-        lr=0.0001,
-        patience=200,
+        source_n_epochs=1000,
+        source_batch_size=32,
+        source_lr=0.0001,
+        source_patience=200,
+        target_n_epochs=1000,
+        target_batch_size=32,
+        target_lr=0.0001,
+        target_patience=200,
         save_dir='./outputs'
         ):
 
@@ -32,10 +36,10 @@ def run(
                        y_source_train,
                        X_source_test,
                        y_source_test,
-                       n_epochs,
-                       batch_size,
-                       lr,
-                       patience,
+                       source_n_epochs,
+                       source_batch_size,
+                       source_lr,
+                       source_patience,
                        copy.deepcopy(model),
                        )
     source_model = out[1]
@@ -47,10 +51,10 @@ def run(
                        y_target_train,
                        X_target_test,
                        y_target_test,
-                       n_epochs,
-                       batch_size,
-                       lr,
-                       patience,
+                       target_n_epochs,
+                       target_batch_size,
+                       target_lr,
+                       target_patience,
                        copy.deepcopy(model),
                        )
     save(*out, os.path.join(save_dir, 'validation/target'))
@@ -61,10 +65,10 @@ def run(
                        y_target_train,
                        X_target_test,
                        y_target_test,
-                       n_epochs,
-                       batch_size,
-                       lr,
-                       patience,
+                       target_n_epochs,
+                       target_batch_size,
+                       target_lr,
+                       target_patience,
                        source_model,
                        )
     save(*out, os.path.join(save_dir, 'validation/transfered'))

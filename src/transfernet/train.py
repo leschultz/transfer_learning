@@ -15,10 +15,14 @@ def run(
         X_target,
         y_target,
         model,
-        n_epochs=1000,
-        batch_size=32,
-        lr=0.0001,
-        patience=200,
+        source_n_epochs=1000,
+        source_batch_size=32,
+        source_lr=0.0001,
+        source_patience=200,
+        target_n_epochs=1000,
+        target_batch_size=32,
+        target_lr=0.0001,
+        target_patience=200,
         save_dir='./outputs'
         ):
 
@@ -26,10 +30,10 @@ def run(
     out = train_fit(
                     X_source,
                     y_source,
-                    n_epochs,
-                    batch_size,
-                    lr,
-                    patience,
+                    source_n_epochs,
+                    source_batch_size,
+                    source_lr,
+                    source_patience,
                     copy.deepcopy(model),
                     )
     source_model = out[1]
@@ -39,10 +43,10 @@ def run(
     out = train_fit(
                     X_target,
                     y_target,
-                    n_epochs,
-                    batch_size,
-                    lr,
-                    patience,
+                    target_n_epochs,
+                    target_batch_size,
+                    target_lr,
+                    target_patience,
                     copy.deepcopy(model),
                     )
     save(*out, os.path.join(save_dir, 'train/target'))
@@ -51,10 +55,10 @@ def run(
     out = train_fit(
                     X_target,
                     y_target,
-                    n_epochs,
-                    batch_size,
-                    lr,
-                    patience,
+                    target_n_epochs,
+                    target_batch_size,
+                    target_lr,
+                    target_patience,
                     source_model,
                     )
     save(*out, os.path.join(save_dir, 'train/transfered'))
