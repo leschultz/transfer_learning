@@ -8,17 +8,17 @@ def main():
 
     # Parameters
     save_dir = './outputs'
-    prefit_model = '../create_source_model/outputs/train/source/model.pth'
-    freeze_n_layers = 1  # Layers to freeze staring from first for transfer
+    prefit_model = 'replace_source_model'
+    freeze_n_layers = replace_freeze  # Layers to freeze staring from first for transfer
 
     # Target training parameters
-    target_n_epochs = 100
+    target_n_epochs = 1000
     target_batch_size = 32
     target_lr = 0.0001
     target_patience = 200
 
     # Load data
-    X_target, y_target = datasets.load('make_regression_target')
+    X_target, y_target = datasets.load('replace_data')
 
     # Define architecture to use
     model = torch.load(prefit_model)
