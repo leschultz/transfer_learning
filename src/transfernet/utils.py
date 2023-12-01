@@ -33,13 +33,38 @@ def to_tensor(x):
     return y
 
 
-def save(scaler, model, df, save_dir):
+def save(
+         scaler,
+         model,
+         df,
+         X_train,
+         y_train,
+         X_test=None,
+         y_test=None,
+         save_dir='./outputs',
+         ):
 
     os.makedirs(save_dir, exist_ok=True)
     joblib.dump(scaler, os.path.join(save_dir, 'scaler.pkl'))
     torch.save(model, os.path.join(save_dir, 'model.pth'))
     df.to_csv(os.path.join(save_dir, 'mae_vs_epochs.csv'), index=False)
     plot(df, os.path.join(save_dir, 'mae_vs_epochs'))
+    np.savetxt(os.path.join(save_dir, 'X_train.csv'), X_train, delimiter=',')
+    np.savetxt(os.path.join(save_dir, 'y_train.csv'), y_train, delimiter=',')
+
+    if X_test is not None:
+        np.savetxt(
+                   os.path.join(save_dir, 'X_test.csv'),
+                   X_test,
+                   delimiter=',',
+                   )
+
+    if y_test is not None:
+        np.savetxt(
+                   os.path.join(save_dir, 'y_test.csv'),
+                   y_test,
+                   delimiter=',',
+                   )
 
 
 def plot(df, save_dir):
@@ -189,7 +214,7 @@ def validate_fit(
 
     df = pd.concat([train, test])
 
-    return scaler, model, df
+    return scaler, model, df, X_train, y_train, X_test, y_test
 
 
 def train_fit(
@@ -260,4 +285,4 @@ def train_fit(
     df['mae'] = train_losses
     df['set'] = 'train'
 
-    return scaler, model, df
+    return scaler, model, df, X, y

@@ -25,11 +25,10 @@ def features(comps):
 
 def load(name):
 
-    name = os.path.join(data_path, name+'.csv')
+    newname = os.path.join(data_path, name+'.csv')
 
-    if name == 'make_regression.csv':
-        name = os.path.join(data_path, name+'.csv')
-        df = pd.read_csv(name)
+    if name == 'make_regression':
+        df = pd.read_csv(newname)
 
         source = df[df['set'] == 'source']
         target = df[df['set'] == 'target']
@@ -43,7 +42,7 @@ def load(name):
         return X_source, y_source, X_target, y_target
 
     else:
-        df = pd.read_csv(name).values
+        df = pd.read_csv(newname).values
         X = features(df[:, 0])
         y = df[:, 1].astype(np.float64)
 

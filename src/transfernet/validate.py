@@ -44,7 +44,7 @@ def run(
                        copy.deepcopy(model),
                        )
     source_model = out[1]
-    save(*out, os.path.join(save_dir, 'validation/source'))
+    save(*out, save_dir=os.path.join(save_dir, 'validation/source'))
 
     # Fit on target domain
     out = validate_fit(
@@ -58,7 +58,7 @@ def run(
                        target_patience,
                        copy.deepcopy(model),
                        )
-    save(*out, os.path.join(save_dir, 'validation/target'))
+    save(*out, save_dir=os.path.join(save_dir, 'validation/target'))
 
     # Transfer model from source to target domains
     source_model = freeze(source_model, freeze_n_layers)
@@ -73,4 +73,4 @@ def run(
                        target_patience,
                        source_model,
                        )
-    save(*out, os.path.join(save_dir, 'validation/transfered'))
+    save(*out, save_dir=os.path.join(save_dir, 'validation/transfered'))

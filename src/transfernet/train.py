@@ -38,7 +38,7 @@ def run(
                     copy.deepcopy(model),
                     )
     source_model = out[1]
-    save(*out, os.path.join(save_dir, 'train/source'))
+    save(*out, save_dir=os.path.join(save_dir, 'train/source'))
 
     # Fit on target domain
     out = train_fit(
@@ -50,7 +50,7 @@ def run(
                     target_patience,
                     copy.deepcopy(model),
                     )
-    save(*out, os.path.join(save_dir, 'train/target'))
+    save(*out, save_dir=os.path.join(save_dir, 'train/target'))
 
     # Transfer model from source to target domains
     source_model = freeze(source_model, freeze_n_layers)
@@ -63,4 +63,4 @@ def run(
                     target_patience,
                     source_model,
                     )
-    save(*out, os.path.join(save_dir, 'train/transfered'))
+    save(*out, save_dir=os.path.join(save_dir, 'train/transfered'))
