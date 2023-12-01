@@ -10,11 +10,11 @@ else:
 
 
 def run(
-        X_source,
-        y_source,
-        X_target,
-        y_target,
         model,
+        X_source=None,
+        y_source=None,
+        X_target=None,
+        y_target=None,
         source_n_epochs=1000,
         source_batch_size=32,
         source_lr=0.0001,
@@ -24,43 +24,67 @@ def run(
         target_lr=0.0001,
         target_patience=200,
         freeze_n_layers=0,
-        save_dir='./outputs'
+        save_dir='./outputs',
+        transfer=True,
+        weights=None,
         ):
 
-    # Fit on source domain
-    out = train_fit(
-                    X_source,
-                    y_source,
-                    source_n_epochs,
-                    source_batch_size,
-                    source_lr,
-                    source_patience,
-                    copy.deepcopy(model),
-                    )
-    source_model = out[1]
-    save(*out, save_dir=os.path.join(save_dir, 'train/source'))
+    cond = [
+            X_source is None,
+            y_source is None,
+            ]
+    cond = not any(cond)
 
-    # Fit on target domain
-    out = train_fit(
-                    X_target,
-                    y_target,
-                    target_n_epochs,
-                    target_batch_size,
-                    target_lr,
-                    target_patience,
-                    copy.deepcopy(model),
-                    )
-    save(*out, save_dir=os.path.join(save_dir, 'train/target'))
+    if cond:
 
-    # Transfer model from source to target domains
-    source_model = freeze(source_model, freeze_n_layers)
-    out = train_fit(
-                    X_target,
-                    y_target,
-                    target_n_epochs,
-                    target_batch_size,
-                    target_lr,
-                    target_patience,
-                    source_model,
-                    )
-    save(*out, save_dir=os.path.join(save_dir, 'train/transfered'))
+        # Fit on source domain
+        out = train_fit(
+                        X_source,
+                        y_source,
+                        source_n_epochs,
+                        source_batch_size,
+                        source_lr,
+                        source_patience,
+                        copy.deepcopy(model),
+                        )
+        source_model = out[1]
+        save(*out, save_dir=os.path.join(save_dir, 'train/source'))
+
+    cond = [
+            X_target is None,
+            y_target is None,
+            ]
+    cond = not any(cond)
+
+    if cond:
+
+        # Fit on target domain
+        out = train_fit(
+                        X_target,
+                        y_target,
+                        target_n_epochs,
+                        target_batch_size,
+                        target_lr,
+                        target_patience,
+                        copy.deepcopy(model),
+                        )
+        save(*out, save_dir=os.path.join(save_dir, 'train/target'))
+
+    if transfer and cond:
+
+        if weights is not None:
+            source_model = model
+            source_model.load_state_dict(weights)
+
+        # Transfer model from source to target domains
+        source_model = freeze(source_model, freeze_n_layers)
+        out = train_fit(
+                        X_target,
+                        y_target,
+                        target_n_epochs,
+                        target_batch_size,
+                        target_lr,
+                        target_patience,
+                        source_model,
+                        )
+        save(*out, save_dir=os.path.join(save_dir, 'train/transfered'))

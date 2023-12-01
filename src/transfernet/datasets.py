@@ -27,23 +27,14 @@ def load(name):
 
     newname = os.path.join(data_path, name+'.csv')
 
-    if name == 'make_regression':
+    if 'make_regression' in name:
         df = pd.read_csv(newname)
-
-        source = df[df['set'] == 'source']
-        target = df[df['set'] == 'target']
-
-        y_source = source['y'].values
-        y_target = target['y'].values
-
-        X_source = source.drop(['y', 'set'], axis=1).values
-        X_target = target.drop(['y', 'set'], axis=1).values
-
-        return X_source, y_source, X_target, y_target
+        y = df['y'].values
+        X = df.drop(['y'], axis=1).values
 
     else:
         df = pd.read_csv(newname).values
         X = features(df[:, 0])
         y = df[:, 1].astype(np.float64)
 
-        return X, y
+    return X, y

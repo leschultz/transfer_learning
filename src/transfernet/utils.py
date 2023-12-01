@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import torch
+import copy
 import json
 import copy
 import os
@@ -45,8 +46,16 @@ def save(
          ):
 
     os.makedirs(save_dir, exist_ok=True)
+
+    torch.save(
+               {
+                'model': model,
+                'weights': model.state_dict(),
+                },
+               os.path.join(save_dir, 'model.pth')
+               )
+
     joblib.dump(scaler, os.path.join(save_dir, 'scaler.pkl'))
-    torch.save(model, os.path.join(save_dir, 'model.pth'))
     df.to_csv(os.path.join(save_dir, 'mae_vs_epochs.csv'), index=False)
     plot(df, os.path.join(save_dir, 'mae_vs_epochs'))
     np.savetxt(os.path.join(save_dir, 'X_train.csv'), X_train, delimiter=',')

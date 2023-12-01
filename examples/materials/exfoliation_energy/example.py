@@ -48,6 +48,7 @@ def main():
 
     # Validate the method by having explicit test sets
     validate.run(
+                 model,
                  X_source_train,
                  y_source_train,
                  X_source_test,
@@ -56,7 +57,6 @@ def main():
                  y_target_train,
                  X_target_test,
                  y_target_test,
-                 model,
                  source_n_epochs,
                  source_batch_size,
                  source_lr,
@@ -71,11 +71,11 @@ def main():
 
     # Train 1 model on all data
     train.run(
+              model,
               X_source,
               y_source,
               X_target,
               y_target,
-              model,
               source_n_epochs,
               source_batch_size,
               source_lr,

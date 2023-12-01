@@ -2,7 +2,7 @@ import setuptools
 
 # Package information
 name = 'transfernet'
-version = '0.0.4'  # Need to increment every time to push to PyPI
+version = '0.0.5'  # Need to increment every time to push to PyPI
 description = 'Deep learning transfer learning.'
 url = 'https://github.com/leschultz/transfernet.git'
 author = 'Lane E. Schultz'

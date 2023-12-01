@@ -23,11 +23,8 @@ def main():
     # Make the target related to the source target by simple function
     df_target['y'] = df_target['y'].apply(lambda x: 5*x+2)
 
-    df_source['set'] = 'source'
-    df_target['set'] = 'target'
-
-    df = pd.concat([df_source, df_target])
-    df.to_csv('make_regression.csv', index=False)
+    df_source.to_csv('make_regression_source.csv', index=False)
+    df_target.to_csv('make_regression_target.csv', index=False)
 
 
 if __name__ == '__main__':
