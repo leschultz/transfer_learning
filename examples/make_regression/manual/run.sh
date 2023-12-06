@@ -2,5 +2,15 @@
 
 cd create_source_model
 ./run.sh
-cd ../apply_previous_model
+cd - > /dev/null
+
+cd scratch
 ./run.sh
+cd - > /dev/null
+
+for i in $(ls | grep freeze)
+do
+	cd ${i}
+	./run.sh
+	cd - > /dev/null
+done	

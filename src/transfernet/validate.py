@@ -29,6 +29,7 @@ def run(
         target_patience=200,
         freeze_n_layers=0,
         save_dir='./outputs',
+        scratch=True,
         transfer=True,
         weights=None,
         ):
@@ -66,7 +67,7 @@ def run(
             ]
     cond = not any(cond)
 
-    if cond:
+    if scratch and cond:
 
         # Fit on target domain
         out = validate_fit(

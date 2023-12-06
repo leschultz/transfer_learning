@@ -9,10 +9,10 @@ def main():
     # Parameters
     save_dir = './outputs'
     prefit_model = '../create_source_model/outputs/train/source/model.pth'
-    freeze_n_layers = 1  # Layers to freeze staring from first for transfer
+    freeze_n_layers = 3  # Layers to freeze staring from first for transfer
 
     # Target training parameters
-    target_n_epochs = 100
+    target_n_epochs = 10000
     target_batch_size = 32
     target_lr = 0.0001
     target_patience = 200
@@ -48,6 +48,7 @@ def main():
                  save_dir=save_dir,
                  freeze_n_layers=freeze_n_layers,
                  weights=weights,
+                 scratch=False,
                  )
 
     # Train 1 model on all data
@@ -62,6 +63,7 @@ def main():
               save_dir=save_dir,
               freeze_n_layers=freeze_n_layers,
               weights=weights,
+              scratch=False,
               )
 
 
