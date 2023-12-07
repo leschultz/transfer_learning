@@ -21,8 +21,6 @@ def main():
     target_lr = 0.0001
     target_patience = 200
 
-    source_n_epochs = target_n_epochs = 10
-
     # Load data
     X_source, y_source = datasets.load('make_regression_source')
     X_target, y_target = datasets.load('make_regression_target')
@@ -30,35 +28,35 @@ def main():
     # Define architecture to use
     model = models.ExampleNet(X_source.shape[1])
 
-    # Split source into train and test
+    # Split source into train and validation
     splits = train_test_split(
                               X_source,
                               y_source,
                               train_size=0.8,
                               random_state=0,
                               )
-    X_source_train, X_source_test, y_source_train, y_source_test = splits
+    X_source_train, X_source_val, y_source_train, y_source_val = splits
 
-    # Split target into train and test
+    # Split target into train and validation
     splits = train_test_split(
                               X_target,
                               y_target,
                               train_size=0.8,
                               random_state=0,
                               )
-    X_target_train, X_target_test, y_target_train, y_target_test = splits
+    X_target_train, X_target_val, y_target_train, y_target_val = splits
 
-    # Validate the method by having explicit test sets
+    # Validate the method by having explicit validation sets
     validate.run(
                  model,
                  X_source_train,
                  y_source_train,
-                 X_source_test,
-                 y_source_test,
+                 X_source_val,
+                 y_source_val,
                  X_target_train,
                  y_target_train,
-                 X_target_test,
-                 y_target_test,
+                 X_target_val,
+                 y_target_val,
                  source_n_epochs,
                  source_batch_size,
                  source_lr,

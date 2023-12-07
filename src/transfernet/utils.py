@@ -40,8 +40,8 @@ def save(
          df,
          X_train,
          y_train,
-         X_test=None,
-         y_test=None,
+         X_val=None,
+         y_val=None,
          save_dir='./outputs',
          ):
 
@@ -61,17 +61,17 @@ def save(
     np.savetxt(os.path.join(save_dir, 'X_train.csv'), X_train, delimiter=',')
     np.savetxt(os.path.join(save_dir, 'y_train.csv'), y_train, delimiter=',')
 
-    if X_test is not None:
+    if X_val is not None:
         np.savetxt(
-                   os.path.join(save_dir, 'X_test.csv'),
-                   X_test,
+                   os.path.join(save_dir, 'X_validation.csv'),
+                   X_val,
                    delimiter=',',
                    )
 
-    if y_test is not None:
+    if y_val is not None:
         np.savetxt(
-                   os.path.join(save_dir, 'y_test.csv'),
-                   y_test,
+                   os.path.join(save_dir, 'y_validation.csv'),
+                   y_val,
                    delimiter=',',
                    )
 
@@ -82,13 +82,21 @@ def plot(df, save_dir):
 
         if group == 'train':
             color = 'b'
-        elif group == 'test':
+        elif group == 'validation':
             color = 'r'
 
         # Regular plot
         fig, ax = pl.subplots()
-        val = min(values['mae'])
-        label = '{} lowest value: {:.2f}'.format(group.capitalize(), val)
+
+        x = values['epoch'].values
+        y = values['mae'].values
+
+        val = np.min(y)
+
+        label = '{}: lowest MAE value: {:.2f}'.format(group.capitalize(), val)
+        label += '\n'
+        label += '{}: last MAE value: {:.2f}'.format(group.capitalize(), y[-1])
+
         ax.plot(
                 values['epoch'],
                 values['mae'],
@@ -137,8 +145,8 @@ def plot(df, save_dir):
 def validate_fit(
                  X_train,
                  y_train,
-                 X_test,
-                 y_test,
+                 X_val,
+                 y_val,
                  n_epochs,
                  batch_size,
                  lr,
@@ -154,13 +162,13 @@ def validate_fit(
     # Scale features
     scaler.fit(X_train)
     X_train = scaler.transform(X_train)
-    X_test = scaler.transform(X_test)
+    X_val = scaler.transform(X_val)
 
     # Convert to tensor
     X_train = to_tensor(X_train)
-    X_test = to_tensor(X_test)
+    X_val = to_tensor(X_val)
     y_train = to_tensor(y_train)
-    y_test = to_tensor(y_test)
+    y_val = to_tensor(y_val)
 
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(
@@ -169,10 +177,10 @@ def validate_fit(
                               shuffle=True,
                               )
 
-    test_epochs = []
+    val_epochs = []
     train_epochs = []
     train_losses = []
-    test_losses = []
+    val_losses = []
 
     best_loss = float('inf')
     no_improv = 0
@@ -194,13 +202,13 @@ def validate_fit(
 
         model.eval()
         with torch.no_grad():
-            y_pred = model(X_test)
-            loss = metric(y_pred, y_test)
-            test_epochs.append(epoch)
-            test_losses.append(loss.item())
+            y_pred = model(X_val)
+            loss = metric(y_pred, y_val)
+            val_epochs.append(epoch)
+            val_losses.append(loss.item())
 
-        if test_losses[-1] < best_loss:
-            best_loss = test_losses[-1]
+        if val_losses[-1] < best_loss:
+            best_loss = val_losses[-1]
             no_improv = 0
         else:
             no_improv += 1
@@ -216,14 +224,14 @@ def validate_fit(
     train['mae'] = train_losses
     train['set'] = 'train'
 
-    test = pd.DataFrame()
-    test['epoch'] = test_epochs
-    test['mae'] = test_losses
-    test['set'] = 'test'
+    val = pd.DataFrame()
+    val['epoch'] = val_epochs
+    val['mae'] = val_losses
+    val['set'] = 'validation'
 
-    df = pd.concat([train, test])
+    df = pd.concat([train, val])
 
-    return scaler, model, df, X_train, y_train, X_test, y_test
+    return scaler, model, df, X_train, y_train, X_val, y_val
 
 
 def train_fit(

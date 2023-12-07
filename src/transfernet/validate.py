@@ -13,12 +13,12 @@ def run(
         model,
         X_source_train=None,
         y_source_train=None,
-        X_source_test=None,
-        y_source_test=None,
+        X_source_val=None,
+        y_source_val=None,
         X_target_train=None,
         y_target_train=None,
-        X_target_test=None,
-        y_target_test=None,
+        X_target_val=None,
+        y_target_val=None,
         source_n_epochs=1000,
         source_batch_size=32,
         source_lr=0.0001,
@@ -37,8 +37,8 @@ def run(
     cond = [
             X_source_train is None,
             y_source_train is None,
-            X_source_test is None,
-            y_source_test is None,
+            X_source_val is None,
+            y_source_val is None,
             ]
     cond = not any(cond)
 
@@ -48,8 +48,8 @@ def run(
         out = validate_fit(
                            X_source_train,
                            y_source_train,
-                           X_source_test,
-                           y_source_test,
+                           X_source_val,
+                           y_source_val,
                            source_n_epochs,
                            source_batch_size,
                            source_lr,
@@ -62,8 +62,8 @@ def run(
     cond = [
             X_target_train is None,
             y_target_train is None,
-            X_target_test is None,
-            y_target_test is None,
+            X_target_val is None,
+            y_target_val is None,
             ]
     cond = not any(cond)
 
@@ -73,8 +73,8 @@ def run(
         out = validate_fit(
                            X_target_train,
                            y_target_train,
-                           X_target_test,
-                           y_target_test,
+                           X_target_val,
+                           y_target_val,
                            target_n_epochs,
                            target_batch_size,
                            target_lr,
@@ -94,8 +94,8 @@ def run(
         out = validate_fit(
                            X_target_train,
                            y_target_train,
-                           X_target_test,
-                           y_target_test,
+                           X_target_val,
+                           y_target_val,
                            target_n_epochs,
                            target_batch_size,
                            target_lr,

@@ -20,22 +20,22 @@ def main():
     # Define architecture to use
     model = models.ExampleNet(X_source.shape[1])
 
-    # Split source into train and test
+    # Split source into train and validation
     splits = train_test_split(
                               X_source,
                               y_source,
                               train_size=0.8,
                               random_state=0,
                               )
-    X_source_train, X_source_test, y_source_train, y_source_test = splits
+    X_source_train, X_source_val, y_source_train, y_source_val = splits
 
-    # Validate the method by having explicit test sets
+    # Validate the method by having explicit validation sets
     validate.run(
                  model,
                  X_source_train,
                  y_source_train,
-                 X_source_test,
-                 y_source_test,
+                 X_source_val,
+                 y_source_val,
                  source_n_epochs=source_n_epochs,
                  source_batch_size=source_batch_size,
                  source_lr=source_lr,

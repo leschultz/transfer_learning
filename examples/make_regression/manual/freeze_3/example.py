@@ -25,22 +25,22 @@ def main():
     weights = model['weights']  # Weights
     model = models.ExampleNet(X_target.shape[1])  # Architecture
 
-    # Split target into train and test
+    # Split target into train and validation
     splits = train_test_split(
                               X_target,
                               y_target,
                               train_size=0.8,
                               random_state=0,
                               )
-    X_target_train, X_target_test, y_target_train, y_target_test = splits
+    X_target_train, X_target_val, y_target_train, y_target_val = splits
 
-    # Validate the method by having explicit test sets
+    # Validate the method by having explicit validation sets
     validate.run(
                  model,
                  X_target_train=X_target_train,
                  y_target_train=y_target_train,
-                 X_target_test=X_target_test,
-                 y_target_test=y_target_test,
+                 X_target_val=X_target_val,
+                 y_target_val=y_target_val,
                  target_n_epochs=target_n_epochs,
                  target_batch_size=target_batch_size,
                  target_lr=target_lr,
