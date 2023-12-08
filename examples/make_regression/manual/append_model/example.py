@@ -2,26 +2,30 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from transfernet import models, datasets, utils
 import pandas as pd
+import torch
 
 
 def main():
 
     # Parameters
     save_dir = './outputs'
+    prefit_model = '../create_source_model/outputs/train/source/model.pth'
 
-    # Source training parameters
+    # Target training parameters
     n_epochs = 10000
     batch_size = 32
     lr = 0.0001
     patience = 200
 
     # Load data
-    X, y = datasets.load('make_regression_source')
+    X, y = datasets.load('make_regression_target')
 
     # Define architecture to use
-    model = models.ExampleNet()
+    prefit = torch.load(prefit_model)['model']
+    new = models.ExampleNet()
+    model = models.AppendModel(prefit, new)
 
-    # Split source into train and validation
+    # Split target into train and validation
     splits = train_test_split(
                               X,
                               y,

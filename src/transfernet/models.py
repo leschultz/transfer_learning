@@ -1,13 +1,44 @@
+from transfernet.utils import freeze
 from torch import nn, relu
+
+
+class AppendModel(nn.Module):
+
+    def __init__(self, pretrained_model, new_model):
+
+        super(AppendModel, self).__init__()
+
+        # Expose last layer
+        pretrained_model = pretrained_model.children()
+        pretrained_model = nn.Sequential(*list(pretrained_model)[:-1])
+
+        # Count hidden layers except last
+        count = 0
+        for layer in pretrained_model.children():
+            count += 1
+
+        # Freeze layers
+        pretrained_model = freeze(pretrained_model, count)
+
+        self.pretrained_model = pretrained_model
+        self.new_model = new_model
+
+    def forward(self, x):
+
+        x = self.pretrained_model(x)
+        x = x.view(x.size(0), -1)
+        x = self.new_model(x)
+
+        return x
 
 
 class ExampleNet(nn.Module):
 
-    def __init__(self, input_dim):
+    def __init__(self):
 
         super(ExampleNet, self).__init__()
 
-        self.fc1 = nn.Linear(input_dim, 24)
+        self.fc1 = nn.LazyLinear(24)
         self.fc2 = nn.Linear(24, 12)
         self.fc3 = nn.Linear(12, 6)
         self.fc4 = nn.Linear(6, 1)
@@ -24,12 +55,12 @@ class ExampleNet(nn.Module):
 
 class ElemNet(nn.Module):
 
-    def __init__(self, input_dim):
+    def __init__(self):
 
         super(ElemNet, self).__init__()
 
         bf = 1024
-        self.fc01 = nn.Linear(input_dim, bf)
+        self.fc01 = nn.LazyLinear(bf)
         self.fc02 = nn.Linear(bf, bf)
         self.fc03 = nn.Linear(bf, bf)
         self.fc04 = nn.Linear(bf, bf)

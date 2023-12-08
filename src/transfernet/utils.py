@@ -12,6 +12,11 @@ import json
 import copy
 import os
 
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+
 
 def freeze(model, freeze_n_layers=0):
 
@@ -143,22 +148,28 @@ def plot(df, save_dir):
             json.dump(data, handle)
 
 
-def validate_fit(
-                 X_train,
-                 y_train,
-                 X_val,
-                 y_val,
-                 n_epochs,
-                 batch_size,
-                 lr,
-                 patience,
-                 model,
-                 print_n=100,
-                 scaler=None
-                 ):
+def fit(
+        model,
+        X_train,
+        y_train,
+        X_val=None,
+        y_val=None,
+        n_epochs=1000,
+        batch_size=32,
+        lr=1e-4,
+        patience=100,
+        print_n=100,
+        scaler=None,
+        save_dir=None,
+        ):
+
+    valcond = all([X_val is not None, y_val is not None])
 
     print('_'*79)
-    print('Assessing model with validation set')
+    if valcond:
+        print('Assessing model with validation set')
+    else:
+        print('Training the model')
     print('-'*79)
 
     # Define models and parameters
@@ -169,13 +180,23 @@ def validate_fit(
     if scaler is not None:
         scaler.fit(X_train)
         X_train = scaler.transform(X_train)
-        X_val = scaler.transform(X_val)
+
+        if valcond:
+            X_val = scaler.transform(X_val)
 
     # Convert to tensor
     X_train = to_tensor(X_train)
-    X_val = to_tensor(X_val)
     y_train = to_tensor(y_train)
-    y_val = to_tensor(y_val)
+
+    train_epochs = []
+    train_losses = []
+
+    if valcond:
+        X_val = to_tensor(X_val)
+        y_val = to_tensor(y_val)
+
+        val_epochs = []
+        val_losses = []
 
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(
@@ -183,11 +204,6 @@ def validate_fit(
                               batch_size=batch_size,
                               shuffle=True,
                               )
-
-    val_epochs = []
-    train_epochs = []
-    train_losses = []
-    val_losses = []
 
     best_loss = float('inf')
     no_improv = 0
@@ -204,107 +220,28 @@ def validate_fit(
             optimizer.step()
 
         loss = metric(model(X_train), y_train)
-        train_epochs.append(epoch)
-        train_losses.append(loss.item())
-
-        model.eval()
-        with torch.no_grad():
-            y_pred = model(X_val)
-            loss = metric(y_pred, y_val)
-            loss = loss.item()
-            val_epochs.append(epoch)
-            val_losses.append(loss)
-
-        if val_losses[-1] < best_loss:
-            best_loss = val_losses[-1]
-            no_improv = 0
-        else:
-            no_improv += 1
-
-        if no_improv >= patience:
-            break
-
-        npoch = epoch+1
-        if npoch % print_n == 0:
-            print(f'Epoch [{npoch}/{n_epochs}]: Validation loss {loss:.2f}')
-
-    # Prepare data for saving
-    train = pd.DataFrame()
-    train['epoch'] = train_epochs
-    train['mae'] = train_losses
-    train['set'] = 'train'
-
-    val = pd.DataFrame()
-    val['epoch'] = val_epochs
-    val['mae'] = val_losses
-    val['set'] = 'validation'
-
-    df = pd.concat([train, val])
-
-    return scaler, model, df, X_train, y_train, X_val, y_val
-
-
-def train_fit(
-              X,
-              y,
-              n_epochs,
-              batch_size,
-              lr,
-              patience,
-              model,
-              print_n=100,
-              scaler=None,
-              ):
-
-    print('_'*79)
-    print('Training full-fit model')
-    print('-'*79)
-
-    # Define models and parameters
-    metric = nn.L1Loss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-
-    # Scale features
-    if scaler is not None:
-        scaler.fit(X)
-        X = scaler.transform(X)
-
-    # Convert to tensor
-    X = to_tensor(X)
-    y = to_tensor(y)
-
-    train_dataset = TensorDataset(X, y)
-    train_loader = DataLoader(
-                              train_dataset,
-                              batch_size=batch_size,
-                              shuffle=True,
-                              )
-
-    train_epochs = []
-    train_losses = []
-
-    best_loss = float('inf')
-    no_improv = 0
-    for epoch in range(n_epochs):
-
-        # Training
-        model.train()
-        for X_batch, y_batch in train_loader:
-
-            optimizer.zero_grad()
-            y_pred = model(X_batch)  # Foward pass
-            loss = metric(y_pred, y_batch)  # Loss
-            loss.backward()
-            optimizer.step()
-
-        loss = metric(model(X), y)
         loss = loss.item()
         train_epochs.append(epoch)
         train_losses.append(loss)
 
-        if train_losses[-1] < best_loss:
+        if valcond:
+
+            model.eval()
+            with torch.no_grad():
+                y_pred = model(X_val)
+                loss = metric(y_pred, y_val)
+                loss = loss.item()
+                val_epochs.append(epoch)
+                val_losses.append(loss)
+
+        if valcond and (val_losses[-1] < best_loss):
+            best_loss = val_losses[-1]
+            no_improv = 0
+
+        elif train_losses[-1] < best_loss:
             best_loss = train_losses[-1]
             no_improv = 0
+
         else:
             no_improv += 1
 
@@ -313,7 +250,10 @@ def train_fit(
 
         npoch = epoch+1
         if npoch % print_n == 0:
-            print(f'Epoch [{npoch}/{n_epochs}]: Train loss {loss:.2f}')
+            if valcond:
+                print(f'Epoch {npoch}/{n_epochs}: Validation loss {loss:.2f}')
+            else:
+                print(f'Epoch {npoch}/{n_epochs}: Train loss {loss:.2f}')
 
     # Prepare data for saving
     df = pd.DataFrame()
@@ -321,4 +261,23 @@ def train_fit(
     df['mae'] = train_losses
     df['set'] = 'train'
 
-    return scaler, model, df, X, y
+    if valcond:
+        val = pd.DataFrame()
+        val['epoch'] = val_epochs
+        val['mae'] = val_losses
+        val['set'] = 'validation'
+        df = pd.concat([df, val])
+
+    if save_dir is not None:
+        save(
+             scaler,
+             model,
+             df,
+             X_train,
+             y_train,
+             X_val,
+             y_val,
+             save_dir=save_dir,
+             )
+
+    return scaler, model, df, X_train, y_train, X_val, y_val

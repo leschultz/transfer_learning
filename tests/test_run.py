@@ -1,5 +1,6 @@
-from transfernet import validate, train, models, datasets
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from transfernet import models, datasets, utils
 import pandas as pd
 import unittest
 import shutil
@@ -14,82 +15,61 @@ class ml_test(unittest.TestCase):
         freeze_n_layers = 1  # Layers to freeze staring from first for transfer
 
         # Source training parameters
-        source_n_epochs = 1
-        source_batch_size = 32
-        source_lr = 0.0001
-        source_patience = 200
-
-        # Target training parameters
-        target_n_epochs = 1
-        target_batch_size = 32
-        target_lr = 0.0001
-        target_patience = 200
+        n_epochs = 1
+        batch_size = 32
+        lr = 0.0001
+        patience = 200
 
         # Load data
-        X_source, y_source = datasets.load('make_regression_source')
-        X_target, y_target = datasets.load('make_regression_target')
+        X, y = datasets.load('make_regression_source')
 
         # Define architecture to use
-        model = models.ExampleNet(X_source.shape[1])
+        model = models.ExampleNet()
 
         # Split source into train and test
         splits = train_test_split(
-                                  X_source,
-                                  y_source,
+                                  X,
+                                  y,
                                   train_size=0.8,
                                   random_state=0,
                                   )
-        X_source_train, X_source_test, y_source_train, y_source_test = splits
+        X_train, X_test, y_train, y_test = splits
 
         # Split target into train and test
         splits = train_test_split(
-                                  X_target,
-                                  y_target,
+                                  X,
+                                  y,
                                   train_size=0.8,
                                   random_state=0,
                                   )
-        X_target_train, X_target_test, y_target_train, y_target_test = splits
+        X_train, X_val, y_train, y_val = splits
 
-        # Validate the method by having explicit test sets
-        validate.run(
-                     model,
-                     X_source_train,
-                     y_source_train,
-                     X_source_test,
-                     y_source_test,
-                     X_target_train,
-                     y_target_train,
-                     X_target_test,
-                     y_target_test,
-                     source_n_epochs,
-                     source_batch_size,
-                     source_lr,
-                     source_patience,
-                     target_n_epochs,
-                     target_batch_size,
-                     target_lr,
-                     target_patience,
-                     freeze_n_layers,
-                     save_dir,
-                     )
-
-        # Train 1 model on all data
-        train.run(
+        # Validate the method by having explicit validation set
+        utils.fit(
                   model,
-                  X_source,
-                  y_source,
-                  X_target,
-                  y_target,
-                  source_n_epochs,
-                  source_batch_size,
-                  source_lr,
-                  source_patience,
-                  target_n_epochs,
-                  target_batch_size,
-                  target_lr,
-                  target_patience,
-                  freeze_n_layers,
-                  save_dir,
+                  X_train,
+                  y_train,
+                  X_val=X_val,
+                  y_val=y_val,
+                  n_epochs=n_epochs,
+                  batch_size=batch_size,
+                  lr=lr,
+                  patience=patience,
+                  save_dir=save_dir+'/validation',
+                  scaler=StandardScaler(),
+                  )
+
+        # Train model on all data
+        utils.fit(
+                  model,
+                  X,
+                  y,
+                  n_epochs=n_epochs,
+                  batch_size=batch_size,
+                  lr=lr,
+                  patience=patience,
+                  save_dir=save_dir+'/train',
+                  scaler=StandardScaler(),
                   )
 
         shutil.rmtree(save_dir)
