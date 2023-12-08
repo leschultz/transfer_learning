@@ -13,7 +13,6 @@ def main():
     n_epochs = 10000
     batch_size = 32
     lr = 0.0001
-    patience = 200
 
     # Load data
     X, y = datasets.load('make_regression_source')
@@ -40,7 +39,6 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              patience=patience,
               save_dir=save_dir+'/validation',
               scaler=StandardScaler(),
               )
@@ -53,7 +51,6 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              patience=patience,
               save_dir=save_dir+'/train',
               scaler=StandardScaler(),
               )

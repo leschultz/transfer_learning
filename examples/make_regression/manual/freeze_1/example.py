@@ -16,15 +16,12 @@ def main():
     n_epochs = 10000
     batch_size = 32
     lr = 0.0001
-    patience = 200
 
     # Load data
     X, y = datasets.load('make_regression_target')
 
     # Define architecture to use
     model = torch.load(prefit_model)
-    weights = model['weights']  # Weights
-    model = models.ExampleNet()  # Architecture
 
     # Split target into train and validation
     splits = train_test_split(
@@ -45,9 +42,9 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              patience=patience,
               save_dir=save_dir+'/validation',
               scaler=StandardScaler(),
+              freeze_n_layers=freeze_n_layers,
               )
 
     # Train model on all data
@@ -58,9 +55,9 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              patience=patience,
               save_dir=save_dir+'/train',
               scaler=StandardScaler(),
+              freeze_n_layers=freeze_n_layers,
               )
 
 

@@ -9,19 +9,18 @@ def main():
 
     # Parameters
     save_dir = './outputs'
-    prefit_model = '../create_source_model/outputs/train/source/model.pth'
+    prefit_model = '../create_source_model/outputs/train/model.pth'
 
     # Target training parameters
     n_epochs = 10000
     batch_size = 32
     lr = 0.0001
-    patience = 200
 
     # Load data
     X, y = datasets.load('make_regression_target')
 
     # Define architecture to use
-    prefit = torch.load(prefit_model)['model']
+    prefit = torch.load(prefit_model)
     new = models.ExampleNet()
     model = models.AppendModel(prefit, new)
 
@@ -44,7 +43,6 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              patience=patience,
               save_dir=save_dir+'/validation',
               scaler=StandardScaler(),
               )
@@ -57,7 +55,6 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              patience=patience,
               save_dir=save_dir+'/train',
               scaler=StandardScaler(),
               )

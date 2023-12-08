@@ -52,10 +52,7 @@ def save(
     os.makedirs(save_dir, exist_ok=True)
 
     torch.save(
-               {
-                'model': model,
-                'weights': model.state_dict(),
-                },
+               model,
                os.path.join(save_dir, 'model.pth')
                )
 
@@ -157,10 +154,11 @@ def fit(
         n_epochs=1000,
         batch_size=32,
         lr=1e-4,
-        patience=100,
+        patience=None,
         print_n=100,
         scaler=None,
         save_dir=None,
+        freeze_n_layers=0,
         ):
 
     valcond = all([X_val is not None, y_val is not None])
@@ -171,6 +169,8 @@ def fit(
     else:
         print('Training the model')
     print('-'*79)
+
+    freeze(model, freeze_n_layers)
 
     # Define models and parameters
     metric = nn.L1Loss()
@@ -234,19 +234,20 @@ def fit(
                 val_epochs.append(epoch)
                 val_losses.append(loss)
 
-        if valcond and (val_losses[-1] < best_loss):
-            best_loss = val_losses[-1]
-            no_improv = 0
+        if patience is not None:
+            if valcond and (val_losses[-1] < best_loss):
+                best_loss = val_losses[-1]
+                no_improv = 0
 
-        elif train_losses[-1] < best_loss:
-            best_loss = train_losses[-1]
-            no_improv = 0
+            elif train_losses[-1] < best_loss:
+                best_loss = train_losses[-1]
+                no_improv = 0
 
-        else:
-            no_improv += 1
+            else:
+                no_improv += 1
 
-        if no_improv >= patience:
-            break
+            if no_improv >= patience:
+                break
 
         npoch = epoch+1
         if npoch % print_n == 0:
