@@ -1,5 +1,6 @@
 from transfernet import validate, train, models, datasets
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
 
@@ -41,6 +42,7 @@ def main():
                  source_lr=source_lr,
                  source_patience=source_patience,
                  save_dir=save_dir,
+                 scaler=StandardScaler(),
                  )
 
     # Train 1 model on all data
@@ -53,6 +55,7 @@ def main():
               source_lr=source_lr,
               source_patience=source_patience,
               save_dir=save_dir,
+              scaler=StandardScaler(),
               )
 
 

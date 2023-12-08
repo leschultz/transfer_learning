@@ -1,6 +1,5 @@
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot as pl
 from torch import nn, optim
 
@@ -55,11 +54,13 @@ def save(
                os.path.join(save_dir, 'model.pth')
                )
 
-    joblib.dump(scaler, os.path.join(save_dir, 'scaler.pkl'))
     df.to_csv(os.path.join(save_dir, 'mae_vs_epochs.csv'), index=False)
     plot(df, os.path.join(save_dir, 'mae_vs_epochs'))
     np.savetxt(os.path.join(save_dir, 'X_train.csv'), X_train, delimiter=',')
     np.savetxt(os.path.join(save_dir, 'y_train.csv'), y_train, delimiter=',')
+
+    if scaler is not None:
+        joblib.dump(scaler, os.path.join(save_dir, 'scaler.pkl'))
 
     if X_val is not None:
         np.savetxt(
@@ -153,6 +154,7 @@ def validate_fit(
                  patience,
                  model,
                  print_n=100,
+                 scaler=None
                  ):
 
     print('_'*79)
@@ -160,14 +162,14 @@ def validate_fit(
     print('-'*79)
 
     # Define models and parameters
-    scaler = StandardScaler()
     metric = nn.L1Loss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     # Scale features
-    scaler.fit(X_train)
-    X_train = scaler.transform(X_train)
-    X_val = scaler.transform(X_val)
+    if scaler is not None:
+        scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_val = scaler.transform(X_val)
 
     # Convert to tensor
     X_train = to_tensor(X_train)
@@ -251,6 +253,7 @@ def train_fit(
               patience,
               model,
               print_n=100,
+              scaler=None,
               ):
 
     print('_'*79)
@@ -258,13 +261,13 @@ def train_fit(
     print('-'*79)
 
     # Define models and parameters
-    scaler = StandardScaler()
     metric = nn.L1Loss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     # Scale features
-    scaler.fit(X)
-    X = scaler.transform(X)
+    if scaler is not None:
+        scaler.fit(X)
+        X = scaler.transform(X)
 
     # Convert to tensor
     X = to_tensor(X)

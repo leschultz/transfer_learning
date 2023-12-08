@@ -1,5 +1,6 @@
 from transfernet import validate, train, models, datasets
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import torch
 
@@ -47,6 +48,7 @@ def main():
                  save_dir=save_dir,
                  weights=weights,
                  transfer=False,
+                 scaler=StandardScaler(),
                  )
 
     # Train 1 model on all data
@@ -60,7 +62,8 @@ def main():
               target_patience=target_patience,
               save_dir=save_dir,
               weights=weights,
-              transfer=False
+              transfer=False,
+              scaler=StandardScaler(),
               )
 
 

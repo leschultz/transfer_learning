@@ -32,6 +32,7 @@ def run(
         scratch=True,
         transfer=True,
         weights=None,
+        scaler=None,
         ):
 
     cond = [
@@ -55,6 +56,7 @@ def run(
                            source_lr,
                            source_patience,
                            copy.deepcopy(model),
+                           scaler=scaler,
                            )
         source_model = out[1]
         save(*out, save_dir=os.path.join(save_dir, 'validation/source'))
@@ -80,6 +82,7 @@ def run(
                            target_lr,
                            target_patience,
                            copy.deepcopy(model),
+                           scaler=scaler,
                            )
         save(*out, save_dir=os.path.join(save_dir, 'validation/target'))
 
@@ -101,5 +104,6 @@ def run(
                            target_lr,
                            target_patience,
                            source_model,
+                           scaler=scaler,
                            )
         save(*out, save_dir=os.path.join(save_dir, 'validation/transfered'))

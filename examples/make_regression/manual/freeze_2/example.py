@@ -1,5 +1,6 @@
 from transfernet import validate, train, models, datasets
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import torch
 
@@ -49,6 +50,7 @@ def main():
                  freeze_n_layers=freeze_n_layers,
                  weights=weights,
                  scratch=False,
+                 scaler=StandardScaler(),
                  )
 
     # Train 1 model on all data
@@ -64,6 +66,7 @@ def main():
               freeze_n_layers=freeze_n_layers,
               weights=weights,
               scratch=False,
+              scaler=StandardScaler(),
               )
 
 
