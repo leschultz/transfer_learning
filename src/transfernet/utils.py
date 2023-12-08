@@ -152,7 +152,12 @@ def validate_fit(
                  lr,
                  patience,
                  model,
+                 print_n=100,
                  ):
+
+    print('_'*79)
+    print('Assessing model with validation set')
+    print('-'*79)
 
     # Define models and parameters
     scaler = StandardScaler()
@@ -204,8 +209,9 @@ def validate_fit(
         with torch.no_grad():
             y_pred = model(X_val)
             loss = metric(y_pred, y_val)
+            loss = loss.item()
             val_epochs.append(epoch)
-            val_losses.append(loss.item())
+            val_losses.append(loss)
 
         if val_losses[-1] < best_loss:
             best_loss = val_losses[-1]
@@ -216,7 +222,9 @@ def validate_fit(
         if no_improv >= patience:
             break
 
-        print(f'Epoch [{epoch+1}/{n_epochs}]')
+        npoch = epoch+1
+        if npoch % print_n == 0:
+            print(f'Epoch [{npoch}/{n_epochs}]: Validation loss {loss:.2f}')
 
     # Prepare data for saving
     train = pd.DataFrame()
@@ -242,7 +250,12 @@ def train_fit(
               lr,
               patience,
               model,
+              print_n=100,
               ):
+
+    print('_'*79)
+    print('Training full-fit model')
+    print('-'*79)
 
     # Define models and parameters
     scaler = StandardScaler()
@@ -282,8 +295,9 @@ def train_fit(
             optimizer.step()
 
         loss = metric(model(X), y)
+        loss = loss.item()
         train_epochs.append(epoch)
-        train_losses.append(loss.item())
+        train_losses.append(loss)
 
         if train_losses[-1] < best_loss:
             best_loss = train_losses[-1]
@@ -294,7 +308,9 @@ def train_fit(
         if no_improv >= patience:
             break
 
-        print(f'Epoch [{epoch+1}/{n_epochs}]')
+        npoch = epoch+1
+        if npoch % print_n == 0:
+            print(f'Epoch [{npoch}/{n_epochs}]: Train loss {loss:.2f}')
 
     # Prepare data for saving
     df = pd.DataFrame()
