@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from matplotlib import pyplot as pl
 from torch import nn, optim
+from transfernet import plots
 
 import pandas as pd
 import numpy as np
@@ -42,6 +42,7 @@ def save(
          scaler,
          model,
          df,
+         df_loss,
          X_train,
          y_train,
          X_val=None,
@@ -56,8 +57,10 @@ def save(
                os.path.join(save_dir, 'model.pth')
                )
 
-    df.to_csv(os.path.join(save_dir, 'mae_vs_epochs.csv'), index=False)
-    plot(df, os.path.join(save_dir, 'mae_vs_epochs'))
+    df.to_csv(os.path.join(save_dir, 'predictions.csv'), index=False)
+    df_loss.to_csv(os.path.join(save_dir, 'mae_vs_epochs.csv'), index=False)
+    plots.learning_curve(df_loss, os.path.join(save_dir, 'mae_vs_epochs'))
+    plots.parity(df, os.path.join(save_dir, 'parity'))
     np.savetxt(os.path.join(save_dir, 'X_train.csv'), X_train, delimiter=',')
     np.savetxt(os.path.join(save_dir, 'y_train.csv'), y_train, delimiter=',')
 
@@ -79,78 +82,14 @@ def save(
                    )
 
 
-def plot(df, save_dir):
-
-    for group, values in df.groupby('set'):
-
-        if group == 'train':
-            color = 'b'
-        elif group == 'validation':
-            color = 'r'
-
-        # Regular plot
-        fig, ax = pl.subplots()
-
-        x = values['epoch'].values
-        y = values['mae'].values
-
-        val = np.min(y)
-
-        label = '{}: lowest MAE value: {:.2f}'.format(group.capitalize(), val)
-        label += '\n'
-        label += '{}: last MAE value: {:.2f}'.format(group.capitalize(), y[-1])
-
-        ax.plot(
-                values['epoch'],
-                values['mae'],
-                marker='o',
-                color=color,
-                label=label,
-                )
-
-        ax.set_xlabel('Epochs')
-        ax.set_ylabel('Loss Mean Average Error')
-
-        fig.tight_layout()
-        name = save_dir+'_{}'.format(group)
-        fig.savefig(
-                    name+'.png',
-                    bbox_inches='tight',
-                    )
-
-        # Legend by itself
-        fig_legend, ax_legend = pl.subplots()
-        ax_legend.axis(False)
-        legend = ax_legend.legend(
-                                  *ax.get_legend_handles_labels(),
-                                  frameon=False,
-                                  loc='center',
-                                  bbox_to_anchor=(0.5, 0.5)
-                                  )
-        ax_legend.spines['top'].set_visible(False)
-        ax_legend.spines['bottom'].set_visible(False)
-        ax_legend.spines['left'].set_visible(False)
-        ax_legend.spines['right'].set_visible(False)
-
-        fig_legend.savefig(
-                           name+'_legend.png',
-                           bbox_inches='tight',
-                           )
-
-        data = {}
-        data['mae'] = values['mae'].tolist()
-        data['epoch'] = values['epoch'].tolist()
-
-        with open(name+'.json', 'w') as handle:
-            json.dump(data, handle)
-
-
 def fit(
         model,
         X_train,
         y_train,
         X_val=None,
         y_val=None,
+        X_test=None,
+        y_test=None,
         n_epochs=1000,
         batch_size=32,
         lr=1e-4,
@@ -162,6 +101,7 @@ def fit(
         ):
 
     valcond = all([X_val is not None, y_val is not None])
+    testcond = all([X_test is not None, y_test is not None])
 
     print('_'*79)
     if valcond:
@@ -184,6 +124,9 @@ def fit(
         if valcond:
             X_val = scaler.transform(X_val)
 
+        if testcond:
+            X_test = scaler.transform(X_test)
+
     # Convert to tensor
     X_train = to_tensor(X_train)
     y_train = to_tensor(y_train)
@@ -197,6 +140,10 @@ def fit(
 
         val_epochs = []
         val_losses = []
+
+    if testcond:
+        X_test = to_tensor(X_test)
+        y_test = to_tensor(y_test)
 
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(
@@ -219,7 +166,8 @@ def fit(
             loss.backward()
             optimizer.step()
 
-        loss = metric(model(X_train), y_train)
+        y_pred_train = model(X_train)
+        loss = metric(y_pred_train, y_train)
         loss = loss.item()
         train_epochs.append(epoch)
         train_losses.append(loss)
@@ -228,8 +176,8 @@ def fit(
 
             model.eval()
             with torch.no_grad():
-                y_pred = model(X_val)
-                loss = metric(y_pred, y_val)
+                y_pred_val = model(X_val)
+                loss = metric(y_pred_val, y_val)
                 loss = loss.item()
                 val_epochs.append(epoch)
                 val_losses.append(loss)
@@ -258,22 +206,44 @@ def fit(
 
     # Prepare data for saving
     df = pd.DataFrame()
-    df['epoch'] = train_epochs
-    df['mae'] = train_losses
+    df['y'] = y_train.view(-1)
+    df['y_pred'] = y_pred_train.detach().view(-1)
     df['set'] = 'train'
+
+    df_loss = pd.DataFrame()
+    df_loss['epoch'] = train_epochs
+    df_loss['mae'] = train_losses
+    df_loss['set'] = 'train'
 
     if valcond:
         val = pd.DataFrame()
-        val['epoch'] = val_epochs
-        val['mae'] = val_losses
+        val['y'] = y_val.detach().view(-1)
+        val['y_pred'] = y_pred_val.view(-1)
         val['set'] = 'validation'
+
+        val_loss = pd.DataFrame()
+        val_loss['epoch'] = val_epochs
+        val_loss['mae'] = val_losses
+        val_loss['set'] = 'validation'
+
         df = pd.concat([df, val])
+        df_loss = pd.concat([df_loss, val_loss])
+
+    if testcond:
+        y_pred_test = model(X_test)
+        test = pd.DataFrame()
+        test['y'] = y_test.detach().view(-1)
+        test['y_pred'] = y_pred_test.detach().view(-1)
+        test['set'] = 'test'
+
+        df = pd.concat([df, test])
 
     if save_dir is not None:
         save(
              scaler,
              model,
              df,
+             df_loss,
              X_train,
              y_train,
              X_val,
@@ -281,4 +251,4 @@ def fit(
              save_dir=save_dir,
              )
 
-    return scaler, model, df, X_train, y_train, X_val, y_val
+    return scaler, model, df, df_loss, X_train, y_train, X_val, y_val
