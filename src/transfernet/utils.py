@@ -9,7 +9,6 @@ import joblib
 import torch
 import copy
 import json
-import copy
 import os
 
 if torch.cuda.is_available():
@@ -158,6 +157,7 @@ def fit(
     if patience is not None:
         best_loss = float('inf')
         no_improv = 0
+        best_model = model
 
     # Training loop
     for epoch in range(n_epochs):
@@ -198,10 +198,12 @@ def fit(
             if valcond and (val_losses[-1] < best_loss):
                 best_loss = val_losses[-1]
                 no_improv = 0
+                best_model = copy.deepcopy(model)
 
             elif train_losses[-1] < best_loss:
                 best_loss = train_losses[-1]
                 no_improv = 0
+                best_model = copy.deepcopy(model)
 
             else:
                 no_improv += 1
@@ -216,9 +218,14 @@ def fit(
             else:
                 print(f'Epoch {npoch}/{n_epochs}: Train loss {loss:.2f}')
 
+    # Select for lowet MAE model
+    if patience is not None:
+        model = best_model
+
     # Prepare data for saving
+    y_pred_train = model(X_train)
     df = pd.DataFrame()
-    df['y'] = y_train.view(-1)
+    df['y'] = y_train.detach().view(-1)
     df['y_pred'] = y_pred_train.detach().view(-1)
     df['set'] = 'train'
 
@@ -229,9 +236,10 @@ def fit(
 
     # Aggregate validation data
     if valcond:
+        y_pred_val = model(X_val)
         val = pd.DataFrame()
         val['y'] = y_val.detach().view(-1)
-        val['y_pred'] = y_pred_val.view(-1)
+        val['y_pred'] = y_pred_val.detach().view(-1)
         val['set'] = 'validation'
 
         val_loss = pd.DataFrame()
