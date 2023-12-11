@@ -9,7 +9,7 @@ font = {'font.size': 16, 'lines.markersize': 10}
 matplotlib.rcParams.update(font)
 
 
-def parity_plotter(y, y_pred, sigma_y, save):
+def parity_plotter(y, y_pred, sigma_y, save, group):
 
     '''
     Make a paroody plot.
@@ -42,12 +42,19 @@ def parity_plotter(y, y_pred, sigma_y, save):
 
     fig, ax = pl.subplots()
 
+    if group == 'train':
+        color = 'g'
+    elif group == 'validation':
+        color = 'b'
+    elif group == 'test':
+        color = 'r'
+
     ax.scatter(
                y,
                y_pred,
                marker='.',
                zorder=2,
-               color='b',
+               color=color,
                label=label,
                )
 
@@ -130,7 +137,7 @@ def parity(
 
         newsave = save+'_{}.png'.format(group)
 
-        parity_plotter(y, y_pred, sigma_y, newsave)
+        parity_plotter(y, y_pred, sigma_y, newsave, group)
 
 
 def learning_curve(df, save_dir):
@@ -138,8 +145,10 @@ def learning_curve(df, save_dir):
     for group, values in df.groupby('set'):
 
         if group == 'train':
-            color = 'b'
+            color = 'g'
         elif group == 'validation':
+            color = 'b'
+        elif group == 'test':
             color = 'r'
 
         # Regular plot

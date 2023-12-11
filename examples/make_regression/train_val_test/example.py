@@ -29,14 +29,14 @@ def main():
                               )
     X_train, X_val, y_train, y_val = splits
 
-    # Split train to get test set
+    # Split validation to get test set
     splits = train_test_split(
-                              X_train,
-                              y_train,
-                              train_size=0.8,
+                              X_val,
+                              y_val,
+                              train_size=0.5,
                               random_state=0,
                               )
-    X_train, X_test, y_train, y_test = splits
+    X_val, X_test, y_val, y_test = splits
 
     # Train, validate, and test data
     utils.fit(
