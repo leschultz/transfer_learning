@@ -100,6 +100,7 @@ def fit(
         freeze_n_layers=0,
         ):
 
+    # Conditions in case validation and/or test sets are supplied
     valcond = all([X_val is not None, y_val is not None])
     testcond = all([X_test is not None, y_test is not None])
 
@@ -110,6 +111,7 @@ def fit(
         print('Training the model')
     print('-'*79)
 
+    # The number of layers to freeze (useful if pretrained model supplied)
     freeze(model, freeze_n_layers)
 
     # Define models and parameters
@@ -152,29 +154,38 @@ def fit(
                               shuffle=True,
                               )
 
-    best_loss = float('inf')
-    no_improv = 0
+    # Variables for early stopping
+    if patience is not None:
+        best_loss = float('inf')
+        no_improv = 0
+
+    # Training loop
     for epoch in range(n_epochs):
 
-        # Training
-        model.train()
+        model.train()  # Traning mode
+
+        # Train for batches
         for X_batch, y_batch in train_loader:
 
-            optimizer.zero_grad()
             y_pred = model(X_batch)  # Foward pass
             loss = metric(y_pred, y_batch)  # Loss
+
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
+        model.eval()  # Evaluation mode
+
+        # Predictions on training
         y_pred_train = model(X_train)
         loss = metric(y_pred_train, y_train)
         loss = loss.item()
         train_epochs.append(epoch)
         train_losses.append(loss)
 
+        # Predictions on validation
         if valcond:
 
-            model.eval()
             with torch.no_grad():
                 y_pred_val = model(X_val)
                 loss = metric(y_pred_val, y_val)
@@ -182,6 +193,7 @@ def fit(
                 val_epochs.append(epoch)
                 val_losses.append(loss)
 
+        # If data does not improve in patience epochs
         if patience is not None:
             if valcond and (val_losses[-1] < best_loss):
                 best_loss = val_losses[-1]
@@ -215,6 +227,7 @@ def fit(
     df_loss['mae'] = train_losses
     df_loss['set'] = 'train'
 
+    # Aggregate validation data
     if valcond:
         val = pd.DataFrame()
         val['y'] = y_val.detach().view(-1)
@@ -229,6 +242,7 @@ def fit(
         df = pd.concat([df, val])
         df_loss = pd.concat([df_loss, val_loss])
 
+    # Predictions on test and aggregate data
     if testcond:
         y_pred_test = model(X_test)
         test = pd.DataFrame()
@@ -238,6 +252,7 @@ def fit(
 
         df = pd.concat([df, test])
 
+    # Save all important things
     if save_dir is not None:
         save(
              scaler,

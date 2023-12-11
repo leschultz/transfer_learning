@@ -15,6 +15,7 @@ def main():
     n_epochs = 10000
     batch_size = 32
     lr = 0.0001
+    patience=200
 
     # Load data
     X, y = datasets.load('make_regression_target')
@@ -33,30 +34,30 @@ def main():
                               )
     X_train, X_val, y_train, y_val = splits
 
-    # Validate the method by having explicit validation set
+    # Split validation to get test set
+    splits = train_test_split(
+                              X_val,
+                              y_val,
+                              train_size=0.5,
+                              random_state=0,
+                              )
+    X_val, X_test, y_val, y_test = splits
+
+    # Validate the method by having explicit test set
     utils.fit(
               model,
               X_train,
               y_train,
               X_val=X_val,
               y_val=y_val,
+              X_test=X_test,
+              y_test=y_test,
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              save_dir=save_dir+'/validation',
+              save_dir=save_dir+'/test',
               scaler=StandardScaler(),
-              )
-
-    # Train model on all data
-    utils.fit(
-              model,
-              X,
-              y,
-              n_epochs=n_epochs,
-              batch_size=batch_size,
-              lr=lr,
-              save_dir=save_dir+'/train',
-              scaler=StandardScaler(),
+              patience=200,
               )
 
 

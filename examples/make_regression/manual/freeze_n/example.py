@@ -3,6 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from transfernet import models, datasets, utils
 import pandas as pd
 import torch
+import copy
 
 
 def main():
@@ -17,11 +18,13 @@ def main():
     lr = 0.0001
     patience=200
 
+    hidden_layers = 3
+
     # Load data
     X, y = datasets.load('make_regression_target')
 
     # Define architecture to use
-    model = models.ExampleNet()
+    model = torch.load(prefit_model)
 
     # Split target into train and validation
     splits = train_test_split(
@@ -41,22 +44,29 @@ def main():
                               )
     X_val, X_test, y_val, y_test = splits
 
-    # Validate the method by having explicit test set
-    utils.fit(
-              model,
-              X_train,
-              y_train,
-              X_val=X_val,
-              y_val=y_val,
-              X_test=X_test,
-              y_test=y_test,
-              n_epochs=n_epochs,
-              batch_size=batch_size,
-              lr=lr,
-              save_dir=save_dir+'/test',
-              scaler=StandardScaler(),
-              patience=patience,
-              )
+    # Freeze n layers
+    for n in range(hidden_layers+1):
+
+        print('+'*79)
+        print(f'Freezing {n} layers')
+
+        # Validate the method by having explicit test set
+        utils.fit(
+                  copy.deepcopy(model),  # Copy to start from original model
+                  X_train,
+                  y_train,
+                  X_val=X_val,
+                  y_val=y_val,
+                  X_test=X_test,
+                  y_test=y_test,
+                  n_epochs=n_epochs,
+                  batch_size=batch_size,
+                  lr=lr,
+                  save_dir=save_dir+'/freeze_{}'.format(n),
+                  scaler=StandardScaler(),
+                  patience=patience,
+                  freeze_n_layers=n,
+                  )
 
 
 if __name__ == '__main__':
