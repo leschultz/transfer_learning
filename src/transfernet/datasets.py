@@ -7,6 +7,13 @@ import os
 data_path = pkg_resources.resource_filename('transfernet', 'data')
 
 
+def drop_constant_cols(X):
+
+    X = X[:, ~(X == X[0, :]).all(0)]
+
+    return X
+
+
 def features(comps):
 
     X = np.zeros((len(comps), 118))
@@ -23,13 +30,14 @@ def features(comps):
     return X
 
 
-def load(name, frac=1):
+def load(name, frac=1, drop_constant=False):
 
     newname = os.path.join(data_path, name+'.csv')
 
     if 'make_regression' in name:
         df = pd.read_csv(newname)
         df = df.sample(frac=frac)
+
         y = df['y'].values
         X = df.drop(['y'], axis=1).values
 
@@ -37,7 +45,11 @@ def load(name, frac=1):
         df = pd.read_csv(newname)
         df = df.sample(frac=frac)
         df = df.values
+
         X = features(df[:, 0])
         y = df[:, 1].astype(np.float64)
+
+    if drop_constant:
+        X = drop_constant_cols(X)
 
     return X, y

@@ -188,13 +188,11 @@ def fit(
 
         # Predictions on validation
         if valcond:
-
-            with torch.no_grad():
-                y_pred_val = model(X_val)
-                loss = metric(y_pred_val, y_val)
-                loss = loss.item()
-                val_epochs.append(epoch)
-                val_losses.append(loss)
+            y_pred_val = model(X_val)
+            loss = metric(y_pred_val, y_val)
+            loss = loss.item()
+            val_epochs.append(epoch)
+            val_losses.append(loss)
 
         # Check for lowest loss
         if valcond and (val_losses[-1] < best_loss):
