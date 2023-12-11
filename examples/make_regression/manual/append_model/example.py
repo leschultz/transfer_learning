@@ -55,7 +55,7 @@ def main():
               n_epochs=n_epochs,
               batch_size=batch_size,
               lr=lr,
-              save_dir=save_dir+'/test',
+              save_dir=save_dir,
               scaler=StandardScaler(),
               patience=200,
               )

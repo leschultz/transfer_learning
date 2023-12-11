@@ -40,21 +40,23 @@ def main():
     X_val, X_test, y_val, y_test = splits
 
     # Validate the method by having explicit test set
-    utils.fit(
-              model,
-              X_train,
-              y_train,
-              X_val=X_val,
-              y_val=y_val,
-              X_test=X_test,
-              y_test=y_test,
-              n_epochs=n_epochs,
-              batch_size=batch_size,
-              lr=lr,
-              save_dir=save_dir+'/test',
-              scaler=StandardScaler(),
-              patience=patience,
-              )
+    out = utils.fit(
+                    model,
+                    X_train,
+                    y_train,
+                    X_val=X_val,
+                    y_val=y_val,
+                    X_test=X_test,
+                    y_test=y_test,
+                    n_epochs=n_epochs,
+                    batch_size=batch_size,
+                    lr=lr,
+                    save_dir=save_dir+'/test',
+                    scaler=StandardScaler(),
+                    patience=patience,
+                    )
+
+    scaler, model = out[:2]  # Trained objects
 
     # Train model on all data  (continues from previous model)
     utils.fit(
@@ -65,7 +67,7 @@ def main():
               batch_size=batch_size,
               lr=lr,
               save_dir=save_dir+'/train',
-              scaler=StandardScaler(),
+              scaler=scaler,
               patience=patience,
               )
 

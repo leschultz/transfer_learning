@@ -103,6 +103,8 @@ def fit(
     valcond = all([X_val is not None, y_val is not None])
     testcond = all([X_test is not None, y_test is not None])
 
+    model = copy.deepcopy(model)
+
     print('_'*79)
     if valcond:
         print('Assessing model with validation set')
