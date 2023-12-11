@@ -55,9 +55,11 @@ class ExampleNet(nn.Module):
 
 class ElemNet(nn.Module):
 
-    def __init__(self):
+    def __init__(self, dropout=True):
 
         super(ElemNet, self).__init__()
+
+        self.dropout = dropout
 
         bf = 1024
         self.fc01 = nn.LazyLinear(bf)
@@ -100,26 +102,33 @@ class ElemNet(nn.Module):
         x = relu(self.fc02(x))
         x = relu(self.fc03(x))
         x = relu(self.fc04(x))
-        x = self.dropout04(x)
+
+        if self.dropout:
+            x = self.dropout04(x)
 
         x = relu(self.fc05(x))
         x = relu(self.fc06(x))
         x = relu(self.fc07(x))
-        x = self.dropout07(x)
+
+        if self.dropout:
+            x = self.dropout07(x)
 
         x = relu(self.fc08(x))
         x = relu(self.fc09(x))
         x = relu(self.fc10(x))
-        x = self.dropout10(x)
+
+        if self.dropout:
+            x = self.dropout10(x)
 
         x = relu(self.fc11(x))
         x = relu(self.fc12(x))
         x = relu(self.fc13(x))
-        x = self.dropout13(x)
+
+        if self.dropout:
+            x = self.dropout13(x)
 
         x = relu(self.fc14(x))
         x = relu(self.fc15(x))
-
         x = relu(self.fc16(x))
 
         x = self.fc17(x)

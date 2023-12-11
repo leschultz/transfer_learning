@@ -1,9 +1,7 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from transfernet import models, datasets, utils
-import pandas as pd
 import torch
-import copy
 
 
 def main():
@@ -52,7 +50,7 @@ def main():
 
         # Validate the method by having explicit test set
         utils.fit(
-                  copy.deepcopy(model),  # Copy to start from original model
+                  model,  # Copy to start from original model
                   X_train,
                   y_train,
                   X_val=X_val,

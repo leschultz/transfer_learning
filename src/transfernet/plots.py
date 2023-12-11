@@ -172,7 +172,7 @@ def learning_curve(df, save_dir):
                 )
 
         ax.set_xlabel('Epochs')
-        ax.set_ylabel('Loss Mean Average Error')
+        ax.set_ylabel('Mean Average Error')
 
         fig.tight_layout()
         name = save_dir+'_{}'.format(group)

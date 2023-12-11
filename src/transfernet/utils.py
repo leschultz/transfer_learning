@@ -97,11 +97,13 @@ def fit(
         scaler=None,
         save_dir=None,
         freeze_n_layers=0,
+        pick='lowest',
         ):
 
     # Conditions in case validation and/or test sets are supplied
-    valcond = all([X_val is not None, y_val is not None])
-    testcond = all([X_test is not None, y_test is not None])
+    valcond = all([X_val is not None, y_val is not None])  # Val set
+    testcond = all([X_test is not None, y_test is not None])  # Test set
+    patcond = patience is not None  # Patience
 
     model = copy.deepcopy(model)
 
@@ -156,15 +158,14 @@ def fit(
                               )
 
     # Variables for early stopping
-    if patience is not None:
+    if patcond:
         best_loss = float('inf')
         no_improv = 0
-        best_model = model
 
     # Training loop
     for epoch in range(n_epochs):
 
-        model.train()  # Traning mode
+        model.train()  # Traning model
 
         # Train for batches
         for X_batch, y_batch in train_loader:
@@ -176,7 +177,7 @@ def fit(
             loss.backward()
             optimizer.step()
 
-        model.eval()  # Evaluation mode
+        model.eval()  # Evaluation model
 
         # Predictions on training
         y_pred_train = model(X_train)
@@ -195,21 +196,22 @@ def fit(
                 val_epochs.append(epoch)
                 val_losses.append(loss)
 
+        # Check for lowest loss
+        if valcond and (val_losses[-1] < best_loss):
+            best_model = copy.deepcopy(model)
+            best_loss = val_losses[-1]
+            no_improv = 0
+
+        elif train_losses[-1] < best_loss:
+            best_model = copy.deepcopy(model)
+            best_loss = train_losses[-1]
+            no_improv = 0
+
+        else:
+            no_improv += 1
+
         # If data does not improve in patience epochs
-        if patience is not None:
-            if valcond and (val_losses[-1] < best_loss):
-                best_loss = val_losses[-1]
-                no_improv = 0
-                best_model = copy.deepcopy(model)
-
-            elif train_losses[-1] < best_loss:
-                best_loss = train_losses[-1]
-                no_improv = 0
-                best_model = copy.deepcopy(model)
-
-            else:
-                no_improv += 1
-
+        if patcond:
             if no_improv >= patience:
                 break
 
@@ -220,8 +222,8 @@ def fit(
             else:
                 print(f'Epoch {npoch}/{n_epochs}: Train loss {loss:.2f}')
 
-    # Select for lowet MAE model
-    if patience is not None:
+    # Select for lowest MAE model
+    if pick == 'lowest':
         model = best_model
 
     # Prepare data for saving
