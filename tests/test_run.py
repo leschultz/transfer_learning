@@ -26,16 +26,7 @@ class ml_test(unittest.TestCase):
         # Define architecture to use
         model = models.ExampleNet()
 
-        # Split source into train and test
-        splits = train_test_split(
-                                  X,
-                                  y,
-                                  train_size=0.8,
-                                  random_state=0,
-                                  )
-        X_train, X_test, y_train, y_test = splits
-
-        # Split target into train and test
+        # Split source into train and validation
         splits = train_test_split(
                                   X,
                                   y,
@@ -44,6 +35,15 @@ class ml_test(unittest.TestCase):
                                   )
         X_train, X_val, y_train, y_val = splits
 
+        # Split validation to get test set
+        splits = train_test_split(
+                                  X_val,
+                                  y_val,
+                                  train_size=0.5,
+                                  random_state=0,
+                                  )
+        X_val, X_test, y_val, y_test = splits
+
         # Validate the method by having explicit validation set
         utils.fit(
                   model,
@@ -51,24 +51,13 @@ class ml_test(unittest.TestCase):
                   y_train,
                   X_val=X_val,
                   y_val=y_val,
+                  X_test=X_test,
+                  y_test=y_test,
                   n_epochs=n_epochs,
                   batch_size=batch_size,
                   lr=lr,
                   patience=patience,
-                  save_dir=save_dir+'/validation',
-                  scaler=StandardScaler(),
-                  )
-
-        # Train model on all data
-        utils.fit(
-                  model,
-                  X,
-                  y,
-                  n_epochs=n_epochs,
-                  batch_size=batch_size,
-                  lr=lr,
-                  patience=patience,
-                  save_dir=save_dir+'/train',
+                  save_dir=save_dir,
                   scaler=StandardScaler(),
                   )
 

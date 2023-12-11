@@ -23,17 +23,20 @@ def features(comps):
     return X
 
 
-def load(name):
+def load(name, frac=1):
 
     newname = os.path.join(data_path, name+'.csv')
 
     if 'make_regression' in name:
         df = pd.read_csv(newname)
+        df = df.sample(frac=frac)
         y = df['y'].values
         X = df.drop(['y'], axis=1).values
 
     else:
-        df = pd.read_csv(newname).values
+        df = pd.read_csv(newname)
+        df = df.sample(frac=frac)
+        df = df.values
         X = features(df[:, 0])
         y = df[:, 1].astype(np.float64)
 
