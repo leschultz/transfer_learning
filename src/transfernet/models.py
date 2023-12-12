@@ -12,7 +12,7 @@ class AppendModel(nn.Module):
         pretrained_model = pretrained_model.children()
         pretrained_model = nn.Sequential(*list(pretrained_model)[:-1])
 
-        # Count hidden layers except last
+        # Count hidden layers
         count = 0
         for layer in pretrained_model.children():
             count += 1
@@ -39,9 +39,9 @@ class ExampleNet(nn.Module):
         super(ExampleNet, self).__init__()
 
         self.fc1 = nn.LazyLinear(24)
-        self.fc2 = nn.Linear(24, 12)
-        self.fc3 = nn.Linear(12, 6)
-        self.fc4 = nn.Linear(6, 1)
+        self.fc2 = nn.LazyLinear(12)
+        self.fc3 = nn.LazyLinear(6)
+        self.fc4 = nn.LazyLinear(1)
 
     def forward(self, x):
 
@@ -61,40 +61,40 @@ class ElemNet(nn.Module):
 
         self.dropout = dropout
 
-        bf = 1024
-        self.fc01 = nn.LazyLinear(bf)
-        self.fc02 = nn.Linear(bf, bf)
-        self.fc03 = nn.Linear(bf, bf)
-        self.fc04 = nn.Linear(bf, bf)
+        n = 1024
+        self.fc01 = nn.LazyLinear(n)
+        self.fc02 = nn.LazyLinear(n)
+        self.fc03 = nn.LazyLinear(n)
+        self.fc04 = nn.LazyLinear(n)
         self.dropout04 = nn.Dropout(0.8)
 
-        af = 512
-        self.fc05 = nn.Linear(bf, af)
-        self.fc06 = nn.Linear(af, af)
-        self.fc07 = nn.Linear(af, af)
+        n = 512
+        self.fc05 = nn.LazyLinear(n)
+        self.fc06 = nn.LazyLinear(n)
+        self.fc07 = nn.LazyLinear(n)
         self.dropout07 = nn.Dropout(0.9)
 
-        bf = 256
-        self.fc08 = nn.Linear(af, bf)
-        self.fc09 = nn.Linear(bf, bf)
-        self.fc10 = nn.Linear(bf, bf)
+        n = 256
+        self.fc08 = nn.LazyLinear(n)
+        self.fc09 = nn.LazyLinear(n)
+        self.fc10 = nn.LazyLinear(n)
         self.dropout10 = nn.Dropout(0.7)
 
-        af = 128
-        self.fc11 = nn.Linear(bf, af)
-        self.fc12 = nn.Linear(af, af)
-        self.fc13 = nn.Linear(af, af)
+        n = 128
+        self.fc11 = nn.LazyLinear(n)
+        self.fc12 = nn.LazyLinear(n)
+        self.fc13 = nn.LazyLinear(n)
         self.dropout13 = nn.Dropout(0.8)
 
-        bf = 64
-        self.fc14 = nn.Linear(af, bf)
-        self.fc15 = nn.Linear(bf, bf)
+        n = 64
+        self.fc14 = nn.LazyLinear(n)
+        self.fc15 = nn.LazyLinear(n)
 
-        af = 32
-        self.fc16 = nn.Linear(bf, af)
+        n = 32
+        self.fc16 = nn.LazyLinear(n)
 
-        bf = 1
-        self.fc17 = nn.Linear(af, bf)
+        n = 1
+        self.fc17 = nn.LazyLinear(n)
 
     def forward(self, x):
 
