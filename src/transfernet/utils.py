@@ -157,12 +157,9 @@ def fit(
                               shuffle=True,
                               )
 
-    # Variables for early stopping
-    if patcond:
-        best_loss = float('inf')
-        no_improv = 0
-
     # Training loop
+    no_improv = 0
+    best_loss = float('inf')
     for epoch in range(n_epochs):
 
         model.train()  # Traning model
