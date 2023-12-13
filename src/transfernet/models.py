@@ -53,84 +53,37 @@ class ExampleNet(nn.Module):
         return x
 
 
-class ElemNet(nn.Module):
+class GeneralNet(nn.Module):
 
-    def __init__(self, dropout=True):
+    def __init__(self, arch={24: 1, 12: 1, 6: 1}, batch_norm=False):
 
-        super(ElemNet, self).__init__()
+        super(GeneralNet, self).__init__()
 
-        self.dropout = dropout
+        self.layers = nn.ModuleList()
+        for neurons, layers in arch.items():
+            for i in range(layers):
+                self.layers.append(nn.LazyLinear(neurons))
 
-        n = 1024
-        self.fc01 = nn.LazyLinear(n)
-        self.fc02 = nn.LazyLinear(n)
-        self.fc03 = nn.LazyLinear(n)
-        self.fc04 = nn.LazyLinear(n)
-        self.dropout04 = nn.Dropout(0.8)
+                if batch_norm:
+                    self.layers.append(nn.BatchNorm1d(neurons))
+                self.layers.append(nn.ReLU())
 
-        n = 512
-        self.fc05 = nn.LazyLinear(n)
-        self.fc06 = nn.LazyLinear(n)
-        self.fc07 = nn.LazyLinear(n)
-        self.dropout07 = nn.Dropout(0.9)
-
-        n = 256
-        self.fc08 = nn.LazyLinear(n)
-        self.fc09 = nn.LazyLinear(n)
-        self.fc10 = nn.LazyLinear(n)
-        self.dropout10 = nn.Dropout(0.7)
-
-        n = 128
-        self.fc11 = nn.LazyLinear(n)
-        self.fc12 = nn.LazyLinear(n)
-        self.fc13 = nn.LazyLinear(n)
-        self.dropout13 = nn.Dropout(0.8)
-
-        n = 64
-        self.fc14 = nn.LazyLinear(n)
-        self.fc15 = nn.LazyLinear(n)
-
-        n = 32
-        self.fc16 = nn.LazyLinear(n)
-
-        n = 1
-        self.fc17 = nn.LazyLinear(n)
+        self.layers.append(nn.LazyLinear(1))
 
     def forward(self, x):
 
-        x = relu(self.fc01(x))
-        x = relu(self.fc02(x))
-        x = relu(self.fc03(x))
-        x = relu(self.fc04(x))
-
-        if self.dropout:
-            x = self.dropout04(x)
-
-        x = relu(self.fc05(x))
-        x = relu(self.fc06(x))
-        x = relu(self.fc07(x))
-
-        if self.dropout:
-            x = self.dropout07(x)
-
-        x = relu(self.fc08(x))
-        x = relu(self.fc09(x))
-        x = relu(self.fc10(x))
-
-        if self.dropout:
-            x = self.dropout10(x)
-
-        x = relu(self.fc11(x))
-        x = relu(self.fc12(x))
-        x = relu(self.fc13(x))
-
-        if self.dropout:
-            x = self.dropout13(x)
-
-        x = relu(self.fc14(x))
-        x = relu(self.fc15(x))
-        x = relu(self.fc16(x))
-
-        x = self.fc17(x)
+        for layer in self.layers:
+            x = layer(x)
 
         return x
+
+
+class ElemNet(GeneralNet):
+
+    def __init__(self):
+
+        # Input parameters
+        arch = {1024: 4, 512: 3, 256: 3, 128: 3, 64: 2, 32: 1}
+        batch_norm = True
+
+        super(ElemNet, self).__init__(arch, batch_norm)

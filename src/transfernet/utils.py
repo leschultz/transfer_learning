@@ -19,8 +19,15 @@ else:
 
 def freeze(model, freeze_n_layers=0):
 
+    # Custom support for custom model
+    if hasattr(model, 'layers') and isinstance(model.layers, nn.ModuleList):
+        layers = model.layers.named_children()
+    # More general way people build models
+    else:
+        layers = model.named_children()
+
     # Freeze neural net layers
-    for i, layer in enumerate(model.named_children()):
+    for i, layer in enumerate(layers):
         if i < freeze_n_layers:
             for param in layer[1].parameters():
                 param.requires_grad = False

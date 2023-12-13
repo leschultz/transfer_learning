@@ -16,8 +16,6 @@ def main():
     lr = 0.0001
     patience=200
 
-    hidden_layers = 3
-
     # Load data
     X, y = datasets.load('make_regression_target')
 
@@ -42,8 +40,8 @@ def main():
                               )
     X_val, X_test, y_val, y_test = splits
 
-    # Freeze n layers
-    for n in range(hidden_layers+1):
+    # Freeze n tranformations (may include things other than layers)
+    for n in [0, 2, 4]:
 
         print('+'*79)
         print(f'Freezing {n} layers')

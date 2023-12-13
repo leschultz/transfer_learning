@@ -17,7 +17,7 @@ def main():
     X, y = datasets.load('make_regression_source')
 
     # Define architecture to use
-    model = models.ExampleNet()
+    model = models.GeneralNet()
 
     # Split source into train and validation
     splits = train_test_split(
