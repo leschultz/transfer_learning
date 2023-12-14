@@ -4,7 +4,16 @@ import pandas as pd
 import numpy as np
 import os
 
-data_path = pkg_resources.resource_filename('transfernet', 'data')
+# Added datasets
+paths = {}
+sets = [
+        'data/synthetic',
+        'data/external/zenodo_5533023',
+        'data/external/oqdm',
+        ]
+
+for p in sets:
+    paths[p] = pkg_resources.resource_filename('transfernet', p)
 
 
 def drop_constant_cols(X):
@@ -30,11 +39,13 @@ def features(comps):
     return X
 
 
-def load(name, frac=None, drop_constant=False):
-
-    newname = os.path.join(data_path, name+'.csv')
+def load(name, frac=None, drop_constant=False, featurize=True):
 
     if 'make_regression' in name:
+
+        newname = paths['data/synthetic']
+        newname = os.path.join(newname, name+'.csv')
+
         df = pd.read_csv(newname)
 
         if frac is not None:
@@ -43,7 +54,11 @@ def load(name, frac=None, drop_constant=False):
         y = df['y'].values
         X = df.drop(['y'], axis=1).values
 
-    else:
+    elif 'oqdm' in name:
+
+        newname = paths['data/external/oqdm']
+        newname = os.path.join(newname, name+'.csv')
+
         df = pd.read_csv(newname)
 
         if frac is not None:
@@ -51,7 +66,22 @@ def load(name, frac=None, drop_constant=False):
 
         df = df.values
 
-        X = features(df[:, 0])
+        X = features(df[:, 0]) if featurize else df[:, 0]
+        y = df[:, 1].astype(np.float64)
+
+    else:
+
+        newname = paths['data/external/zenodo_5533023']
+        newname = os.path.join(newname, name+'.csv')
+
+        df = pd.read_csv(newname)
+
+        if frac is not None:
+            df = df.sample(frac=frac)
+
+        df = df.values
+
+        X = features(df[:, 0]) if featurize else df[:, 0]
         y = df[:, 1].astype(np.float64)
 
     if drop_constant:
