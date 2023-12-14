@@ -4,7 +4,7 @@ from transfernet import datasets
 def main():
 
     # Load data
-    X, y = datasets.load('deltae')
+    X, y = datasets.load('oqdm_formation')
 
     print(X)
     print(y)

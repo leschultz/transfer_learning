@@ -13,6 +13,8 @@ def name_convention(x):
 df = 'oqmd.csv'
 df = pd.read_csv(df)
 
+#df = df.sample(frac=0.01)  # for debugging
+
 df = df.drop_duplicates()
 df = df.dropna()
 
@@ -21,6 +23,9 @@ df = df.sort_values(by=['stability', 'delta_e', 'name', 'entry_id'])
 
 # Keep most stable compositions
 df = df.drop_duplicates(subset='name', keep='first')
+
+# Remove some large formation energies by a cutoff
+df = df[df['delta_e'] <= 10.0]
 
 stability = df[['name', 'stability']]
 formation = df[['name', 'delta_e']]
