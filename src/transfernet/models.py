@@ -84,6 +84,6 @@ class ElemNet(GeneralNet):
 
         # Input parameters
         arch = {1024: 4, 512: 3, 256: 3, 128: 3, 64: 2, 32: 1}
-        batch_norm = True
+        batch_norm = False
 
         super(ElemNet, self).__init__(arch, batch_norm)

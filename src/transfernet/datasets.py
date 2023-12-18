@@ -9,7 +9,7 @@ paths = {}
 sets = [
         'data/synthetic',
         'data/external/zenodo_5533023',
-        'data/external/oqdm',
+        'data/external/oqmd',
         ]
 
 for p in sets:
@@ -25,6 +25,7 @@ def drop_constant_cols(X):
 
 def features(comps):
 
+    # There are 118 known elements
     X = np.zeros((len(comps), 118))
     count = 0
     for comp in comps:
@@ -54,9 +55,9 @@ def load(name, frac=None, drop_constant=False, featurize=True):
         y = df['y'].values
         X = df.drop(['y'], axis=1).values
 
-    elif 'oqdm' in name:
+    elif 'oqmd' in name:
 
-        newname = paths['data/external/oqdm']
+        newname = paths['data/external/oqmd']
         newname = os.path.join(newname, name+'.csv')
 
         df = pd.read_csv(newname)
