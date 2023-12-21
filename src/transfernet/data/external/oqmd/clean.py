@@ -25,7 +25,7 @@ df = df.sort_values(by=['stability', 'delta_e', 'name', 'entry_id'])
 df = df.drop_duplicates(subset='name', keep='first')
 
 # Remove some large formation energies by a cutoff
-df = df[df['delta_e'] <= 10.0]
+df = df[df['delta_e'] <= 3.0]
 
 stability = df[['name', 'stability']]
 formation = df[['name', 'delta_e']]
@@ -33,16 +33,6 @@ formation = df[['name', 'delta_e']]
 # Sort to make pretty
 stability = stability.sort_values(by=['stability', 'name'])
 formation = formation.sort_values(by=['delta_e', 'name'])
-
-'''
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots()
-ax.scatter(range(formation.shape[0]), formation['delta_e'], marker='.')
-ax.set_xlabel('index')
-ax.set_ylabel('delta_e')
-ax.set_yscale('log')
-plt.show()
-'''
 
 print(df)
 print(stability)
