@@ -11,11 +11,6 @@ import copy
 import json
 import os
 
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-else:
-    device = torch.device("cpu")
-
 
 def freeze(model, freeze_n_layers=0):
 
