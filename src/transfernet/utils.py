@@ -66,6 +66,7 @@ def save(
                os.path.join(save_dir, 'model.pth')
                )
 
+    X_train = X_train.cpu().detach()
     df.to_csv(os.path.join(save_dir, 'predictions.csv'), index=False)
     df_loss.to_csv(os.path.join(save_dir, 'mae_vs_epochs.csv'), index=False)
     plots.learning_curve(df_loss, os.path.join(save_dir, 'mae_vs_epochs'))
@@ -79,7 +80,7 @@ def save(
     if X_val is not None:
         np.savetxt(
                    os.path.join(save_dir, 'X_validation.csv'),
-                   X_val,
+                   X_val.cpu().detach(),
                    delimiter=',',
                    )
 
@@ -93,7 +94,7 @@ def save(
     if X_test is not None:
         np.savetxt(
                    os.path.join(save_dir, 'X_test.csv'),
-                   X_test,
+                   X_test.cpu().detach(),
                    delimiter=',',
                    )
 
@@ -303,11 +304,11 @@ def fit(
              model,
              df,
              df_loss,
-             X_train.cpu().detach(),
+             X_train,
              y_train,
-             X_val.cpu().detach(),
+             X_val,
              y_val,
-             X_test.cpu().detach(),
+             X_test,
              y_test,
              save_dir=save_dir,
              )
