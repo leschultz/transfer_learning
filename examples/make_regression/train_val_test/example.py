@@ -1,21 +1,17 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from transfernet import models, datasets, utils
-import torch
 
 
 def main():
 
     # Parameters
     save_dir = './outputs'
-    device = 'cuda'
 
     # Source training parameters
     n_epochs = 1000
     batch_size = 32
     lr = 0.0001
-
-    device = torch.device(device)
 
     # Load data
     X, y = datasets.load('make_regression_source')

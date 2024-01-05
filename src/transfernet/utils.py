@@ -11,6 +11,12 @@ import copy
 import json
 import os
 
+# Chose defalut device
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
+
 
 def freeze(model, freeze_n_layers=0):
 
@@ -30,8 +36,8 @@ def freeze(model, freeze_n_layers=0):
     return model
 
 
-def to_tensor(x):
-    y = torch.FloatTensor(x)
+def to_tensor(x, device):
+    y = torch.FloatTensor(x).to(device)
 
     if len(y.shape) < 2:
         y = y.reshape(-1, 1)
@@ -48,6 +54,8 @@ def save(
          y_train,
          X_val=None,
          y_val=None,
+         X_test=None,
+         y_test=None,
          save_dir='./outputs',
          ):
 
@@ -82,6 +90,20 @@ def save(
                    delimiter=',',
                    )
 
+    if X_test is not None:
+        np.savetxt(
+                   os.path.join(save_dir, 'X_test.csv'),
+                   X_test,
+                   delimiter=',',
+                   )
+
+    if y_test is not None:
+        np.savetxt(
+                   os.path.join(save_dir, 'y_test.csv'),
+                   y_test,
+                   delimiter=',',
+                   )
+
 
 def fit(
         model,
@@ -100,6 +122,7 @@ def fit(
         save_dir=None,
         freeze_n_layers=0,
         pick='lowest',
+        device=device,
         ):
 
     # Conditions in case validation and/or test sets are supplied
@@ -107,7 +130,7 @@ def fit(
     testcond = all([X_test is not None, y_test is not None])  # Test set
     patcond = patience is not None  # Patience
 
-    model = copy.deepcopy(model)
+    model = copy.deepcopy(model).to(device)
 
     print('_'*79)
     if valcond:
@@ -135,22 +158,22 @@ def fit(
             X_test = scaler.transform(X_test)
 
     # Convert to tensor
-    X_train = to_tensor(X_train)
-    y_train = to_tensor(y_train)
+    X_train = to_tensor(X_train, device)
+    y_train = to_tensor(y_train, device)
 
     train_epochs = []
     train_losses = []
 
     if valcond:
-        X_val = to_tensor(X_val)
-        y_val = to_tensor(y_val)
+        X_val = to_tensor(X_val, device)
+        y_val = to_tensor(y_val, device)
 
         val_epochs = []
         val_losses = []
 
     if testcond:
-        X_test = to_tensor(X_test)
-        y_test = to_tensor(y_test)
+        X_test = to_tensor(X_test, device)
+        y_test = to_tensor(y_test, device)
 
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(
@@ -225,9 +248,13 @@ def fit(
 
     # Prepare data for saving
     y_pred_train = model(X_train)
+
+    y_train = y_train.cpu().detach().view(-1)
+    y_pred_train = y_pred_train.cpu().detach().view(-1)
+
     df = pd.DataFrame()
-    df['y'] = y_train.detach().view(-1)
-    df['y_pred'] = y_pred_train.detach().view(-1)
+    df['y'] = y_train
+    df['y_pred'] = y_pred_train
     df['set'] = 'train'
 
     df_loss = pd.DataFrame()
@@ -238,9 +265,13 @@ def fit(
     # Aggregate validation data
     if valcond:
         y_pred_val = model(X_val)
+
+        y_val = y_val.cpu().detach().view(-1)
+        y_pred_val = y_pred_val.cpu().detach().view(-1)
+
         val = pd.DataFrame()
-        val['y'] = y_val.detach().view(-1)
-        val['y_pred'] = y_pred_val.detach().view(-1)
+        val['y'] = y_val
+        val['y_pred'] = y_pred_val
         val['set'] = 'validation'
 
         val_loss = pd.DataFrame()
@@ -254,9 +285,13 @@ def fit(
     # Predictions on test and aggregate data
     if testcond:
         y_pred_test = model(X_test)
+
+        y_test = y_test.cpu().detach().view(-1)
+        y_pred_test = y_pred_test.cpu().detach().view(-1)
+
         test = pd.DataFrame()
-        test['y'] = y_test.detach().view(-1)
-        test['y_pred'] = y_pred_test.detach().view(-1)
+        test['y'] = y_test
+        test['y_pred'] = y_pred_test
         test['set'] = 'test'
 
         df = pd.concat([df, test])
@@ -268,10 +303,12 @@ def fit(
              model,
              df,
              df_loss,
-             X_train,
+             X_train.cpu().detach(),
              y_train,
-             X_val,
+             X_val.cpu().detach(),
              y_val,
+             X_test.cpu().detach(),
+             y_test,
              save_dir=save_dir,
              )
 
