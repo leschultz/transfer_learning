@@ -200,48 +200,50 @@ def fit(
             loss.backward()
             optimizer.step()
 
-        model.eval()  # Evaluation model
+        with torch.no_grad():
+            model.eval()  # Evaluation model
 
-        # Predictions on training
-        y_pred_train = model(X_train)
-        loss = metric(y_pred_train, y_train)
-        loss = loss.item()
-        train_epochs.append(epoch)
-        train_losses.append(loss)
-
-        # Predictions on validation
-        if valcond:
-            y_pred_val = model(X_val)
-            loss = metric(y_pred_val, y_val)
+            # Predictions on training
+            y_pred_train = model(X_train)
+            loss = metric(y_pred_train, y_train)
             loss = loss.item()
-            val_epochs.append(epoch)
-            val_losses.append(loss)
+            train_epochs.append(epoch)
+            train_losses.append(loss)
 
-        # Check for lowest loss
-        if valcond and (val_losses[-1] < best_loss):
-            best_model = copy.deepcopy(model)
-            best_loss = val_losses[-1]
-            no_improv = 0
-
-        elif train_losses[-1] < best_loss:
-            best_model = copy.deepcopy(model)
-            best_loss = train_losses[-1]
-            no_improv = 0
-
-        else:
-            no_improv += 1
-
-        # If data does not improve in patience epochs
-        if patcond:
-            if no_improv >= patience:
-                break
-
-        npoch = epoch+1
-        if npoch % print_n == 0:
+            # Predictions on validation
             if valcond:
-                print(f'Epoch {npoch}/{n_epochs}: Validation loss {loss:.2f}')
+                y_pred_val = model(X_val)
+                loss = metric(y_pred_val, y_val)
+                loss = loss.item()
+                val_epochs.append(epoch)
+                val_losses.append(loss)
+
+            # Check for lowest loss
+            if valcond and (val_losses[-1] < best_loss):
+                best_model = copy.deepcopy(model)
+                best_loss = val_losses[-1]
+                no_improv = 0
+
+            elif train_losses[-1] < best_loss:
+                best_model = copy.deepcopy(model)
+                best_loss = train_losses[-1]
+                no_improv = 0
+
             else:
-                print(f'Epoch {npoch}/{n_epochs}: Train loss {loss:.2f}')
+                no_improv += 1
+
+            # If data does not improve in patience epochs
+            if patcond:
+                if no_improv >= patience:
+                    break
+
+            npoch = epoch+1
+            if npoch % print_n == 0:
+                p = f'Epoch {npoch}/{n_epochs}: '
+                if valcond:
+                    print(p+f'Validation loss {loss:.2f}')
+                else:
+                    print(p+f'Train loss {loss:.2f}')
 
     # Select for lowest MAE model
     if pick == 'lowest':
