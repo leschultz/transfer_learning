@@ -21,7 +21,7 @@ def main():
 
     # Define architecture to use
     prefit = torch.load(prefit_model)
-    new = models.GeneralNet()
+    new = models.ExampleNet()
     model = models.AppendModel(prefit, new)
 
     # Split target into train and validation

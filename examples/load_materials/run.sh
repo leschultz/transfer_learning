@@ -2,4 +2,4 @@
 
 export PYTHONPATH=$(pwd)/../../src:$PYTHONPATH
 
-python3 example.py
+torchrun example.py

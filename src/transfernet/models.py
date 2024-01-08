@@ -1,5 +1,12 @@
-from transfernet.utils import freeze
+from transfernet.utils import freeze, to_tensor
 from torch import nn, relu
+import torch
+
+# Chose defalut device
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
 
 
 class AppendModel(nn.Module):
@@ -10,7 +17,11 @@ class AppendModel(nn.Module):
 
         # Expose last layer
         pretrained_model = pretrained_model.children()
-        pretrained_model = nn.Sequential(*list(pretrained_model)[:-1])
+        pre_list = list(pretrained_model)
+        if isinstance(pre_list[0], nn.ModuleList):
+            pre_list = pre_list[0]
+
+        pretrained_model = nn.Sequential(*pre_list[:-1])
 
         # Count hidden layers
         count = 0
@@ -30,6 +41,30 @@ class AppendModel(nn.Module):
         x = self.new_model(x)
 
         return x
+
+    def fit(self, X, y):
+
+        self.pretrained_model.eval()
+        X = to_tensor(X, device)
+
+        with torch.no_grad():
+            X_train = self.pretrained_model(X)
+            X_train = X_train.cpu().detach()
+
+        self.new_model.fit(X_train, y)
+
+    def predict(self, X):
+
+        X = to_tensor(X, device)
+
+        self.pretrained_model.eval()
+
+        X_train = self.pretrained_model(X)
+        X_train = X_train.cpu().detach()
+
+        y_pred = self.new_model.predict(X_train)
+
+        return y_pred
 
 
 class ExampleNet(nn.Module):
