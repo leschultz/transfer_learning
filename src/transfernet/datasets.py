@@ -40,7 +40,9 @@ def features(comps):
     return X
 
 
-def load(name, frac=None, drop_constant=False, featurize=True):
+def load(name, frac=1, drop_constant=False, featurize=True, seed=0):
+
+    np.random.seed(seed)
 
     if 'make_regression' in name:
 
@@ -48,9 +50,7 @@ def load(name, frac=None, drop_constant=False, featurize=True):
         newname = os.path.join(newname, name+'.csv')
 
         df = pd.read_csv(newname)
-
-        if frac is not None:
-            df = df.sample(frac=frac)
+        df = df.sample(frac=frac)
 
         y = df['y'].values
         X = df.drop(['y'], axis=1).values
@@ -61,10 +61,7 @@ def load(name, frac=None, drop_constant=False, featurize=True):
         newname = os.path.join(newname, name+'.csv')
 
         df = pd.read_csv(newname)
-
-        if frac is not None:
-            df = df.sample(frac=frac)
-
+        df = df.sample(frac=frac)
         df = df.values
 
         X = features(df[:, 0]) if featurize else df[:, 0]
@@ -76,10 +73,7 @@ def load(name, frac=None, drop_constant=False, featurize=True):
         newname = os.path.join(newname, name+'.csv')
 
         df = pd.read_csv(newname)
-
-        if frac is not None:
-            df = df.sample(frac=frac)
-
+        df = df.sample(frac=frac)
         df = df.values
 
         X = features(df[:, 0]) if featurize else df[:, 0]
