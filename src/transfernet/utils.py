@@ -250,7 +250,8 @@ def fit(
         model = best_model
 
     # Prepare data for saving
-    y_pred_train = model(X_train)
+    with torch.no_grad():
+        y_pred_train = model(X_train)
 
     y_train = y_train.cpu().detach().view(-1)
     y_pred_train = y_pred_train.cpu().detach().view(-1)
@@ -267,7 +268,9 @@ def fit(
 
     # Aggregate validation data
     if valcond:
-        y_pred_val = model(X_val)
+
+        with torch.no_grad():
+            y_pred_val = model(X_val)
 
         y_val = y_val.cpu().detach().view(-1)
         y_pred_val = y_pred_val.cpu().detach().view(-1)
@@ -287,7 +290,9 @@ def fit(
 
     # Predictions on test and aggregate data
     if testcond:
-        y_pred_test = model(X_test)
+
+        with torch.no_grad():
+            y_pred_test = model(X_test)
 
         y_test = y_test.cpu().detach().view(-1)
         y_pred_test = y_pred_test.cpu().detach().view(-1)
