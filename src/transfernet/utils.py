@@ -118,7 +118,7 @@ def fit(
         batch_size=32,
         lr=1e-4,
         patience=None,
-        print_n=100,
+        print_n=np.inf,
         scaler=None,
         save_dir=None,
         freeze_n_layers=0,
@@ -132,13 +132,6 @@ def fit(
     patcond = patience is not None  # Patience
 
     model = copy.deepcopy(model).to(device)
-
-    print('_'*79)
-    if valcond:
-        print('Assessing model with validation set')
-    else:
-        print('Training the model')
-    print('-'*79)
 
     # The number of layers to freeze (useful if pretrained model supplied)
     freeze(model, freeze_n_layers)
