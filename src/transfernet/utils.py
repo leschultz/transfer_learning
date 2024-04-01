@@ -122,7 +122,7 @@ def fit(
         scaler=None,
         save_dir=None,
         freeze_n_layers=0,
-        pick='lowest',
+        pick='last',
         device=device,
         ):
 
