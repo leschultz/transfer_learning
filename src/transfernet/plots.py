@@ -101,10 +101,11 @@ def parity_plotter(y, y_pred, sigma_y, save, group):
     ax_legend.spines['left'].set_visible(False)
     ax_legend.spines['right'].set_visible(False)
 
-    fig.savefig(save, bbox_inches='tight')
+    fig.savefig(save, bbox_inches='tight', dpi=400)
     fig_legend.savefig(
                        save.replace('.png', '_legend.png'),
                        bbox_inches='tight',
+                       dpi=400,
                        )
 
     pl.close(fig)
@@ -179,6 +180,7 @@ def learning_curve(df, save_dir):
         fig.savefig(
                     name+'.png',
                     bbox_inches='tight',
+                    dpi=400,
                     )
 
         # Legend by itself
@@ -198,6 +200,7 @@ def learning_curve(df, save_dir):
         fig_legend.savefig(
                            name+'_legend.png',
                            bbox_inches='tight',
+                           dpi=400,
                            )
 
         data = {}
